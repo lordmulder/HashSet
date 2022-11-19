@@ -128,7 +128,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <AdditionalIncludeDirectories>$(ProjectDir)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

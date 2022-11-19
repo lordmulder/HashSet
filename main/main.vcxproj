@@ -123,7 +123,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <ControlFlowGuard>false</ControlFlowGuard>
       <Optimization>MaxSpeed</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
