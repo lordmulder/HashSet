@@ -28,14 +28,12 @@ struct _hash_set_data
 struct _hash_set
 {
 	double load_factor;
-	int fail_fast;
+	uint16_t options;
 	size_t size, limit;
 	struct _hash_set_data data;
 };
 
 #define BOUND(MIN,VAL,MAX) (((VAL) < (MIN)) ? (MIN) : (((VAL) > (MAX)) ? (MAX) : (VAL)))
-
-#define BOOLIFY(X) (!!(X))
 
 /* ========================================================================= */
 /* PRIVATE FUNCTIONS                                                         */
@@ -193,7 +191,7 @@ static INLINE errno_t grow_set(hash_set_t *const instance, const size_t new_capa
 /* PUBLIC FUNCTIONS                                                          */
 /* ========================================================================= */
 
-hash_set_t *hash_set_create(const double load_factor, const int fail_fast, const size_t initial_capacity)
+hash_set_t *hash_set_create(const size_t initial_capacity, const double load_factor, const uint16_t options)
 {
 	hash_set_t *const instance = (hash_set_t*) calloc(1U, sizeof(hash_set_t));
 	if (!instance)
@@ -208,7 +206,7 @@ hash_set_t *hash_set_create(const double load_factor, const int fail_fast, const
 	}
 
 	instance->load_factor = (load_factor > 0.0) ? BOUND(0.001953125, load_factor, 1.0) : 0.666;
-	instance->fail_fast = BOOLIFY(fail_fast);
+	instance->options = options;
 	instance->limit = round(instance->data.capacity * instance->load_factor);
 
 	return instance;
@@ -242,7 +240,7 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 	{
 		if (instance->data.capacity == SIZE_MAX)
 		{
-			if (instance->fail_fast || (instance->size >= instance->data.capacity))
+			if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->size >= instance->data.capacity))
 			{
 				return ENOMEM; /*malloc has failed!*/
 			}
@@ -255,7 +253,7 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 				instance->limit = instance->data.capacity;
 				if (error == ENOMEM)
 				{
-					if (instance->fail_fast || (instance->size >= instance->data.capacity))
+					if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->size >= instance->data.capacity))
 					{
 						return ENOMEM; /*malloc has failed!*/
 					}
