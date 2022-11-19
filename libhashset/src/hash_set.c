@@ -205,7 +205,7 @@ hash_set_t *hash_set_create(const size_t initial_capacity, const double load_fac
 		return NULL;
 	}
 
-	instance->load_factor = (load_factor > 0.0) ? BOUND(0.001953125, load_factor, 1.0) : 0.666;
+	instance->load_factor = (load_factor > 0.0) ? BOUND(0.1, load_factor, 1.0) : 0.75;
 	instance->options = options;
 	instance->limit = round(instance->data.capacity * instance->load_factor);
 
@@ -236,7 +236,7 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 		return EEXIST;
 	}
 
-	if ((instance->size >= instance->limit) || (instance->size >= instance->data.capacity))
+	while ((instance->size >= instance->limit) || (instance->size >= instance->data.capacity))
 	{
 		if (instance->data.capacity == SIZE_MAX)
 		{
