@@ -19,10 +19,10 @@ typedef struct _hash_set hash_set_t;
 hash_set_t *hash_set_create(const double load_factor, const int fail_fast, const size_t initial_capacity);
 void hash_set_destroy(hash_set_t *const instance);
 
-int hash_set_insert(hash_set_t *const instance, const uint64_t value);
-int hash_set_contains(hash_set_t *const instance, const uint64_t value);
+errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value);
+errno_t hash_set_contains(hash_set_t *const instance, const uint64_t value);
 
-size_t hash_set_current_size(hash_set_t *const instance);
+size_t hash_set_size(hash_set_t *const instance);
 
 #ifdef __cplusplus
 }

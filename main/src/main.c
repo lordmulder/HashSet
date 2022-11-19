@@ -1,3 +1,8 @@
+/******************************************************************************/
+/* HashSet for C99, by LoRd_MuldeR <MuldeR2@GMX.de>                           */
+/* This work has been released under the CC0 1.0 Universal license!           */
+/******************************************************************************/
+
 #define _CRT_RAND_S 1
 
 #include <stdio.h>
@@ -29,10 +34,10 @@ int main()
 	clock_t next_update = clock() + (2U * CLOCKS_PER_SEC);
 	for (;;)
 	{
-		const int ret = hash_set_insert(set, next_rand() & 0x3FFFFFFFFFFFFFFllu);
-		if (ret != 1)
+		const errno_t error = hash_set_insert(set, next_rand() & 0x3FFFFFFFFFFFFFFllu);
+		if (error)
 		{
-			printf("Error! (%d)\n", ret);
+			printf("Insert has failed! (error: %d)\n", error);
 			break;
 		}
 		if (!(++spinner & 0x7F))
@@ -40,7 +45,7 @@ int main()
 			const clock_t now = clock();
 			if (now >= next_update)
 			{
-				printf("%zu\n", hash_set_current_size(set));
+				printf("%zu\n", hash_set_size(set));
 				next_update = now + (2U * CLOCKS_PER_SEC);
 			}
 		}

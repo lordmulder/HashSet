@@ -7,6 +7,8 @@
 
 /* CRT */
 #include <string.h>
+#include <errno.h>
+#include <stdbool.h>
 
 #if defined(__GNUC__)
 #  define INLINE __inline__
@@ -39,6 +41,11 @@ struct _hash_set
 /* PRIVATE FUNCTIONS                                                         */
 /* ========================================================================= */
 
+static INLINE size_t hash(const uint64_t value, const size_t capacity)
+{
+	return (size_t) (((UINT64_C(14695981039346656037) + value) * UINT64_C(1099511628211)) % capacity);
+}
+
 static inline size_t safe_mult2(const size_t value)
 {
 	return (value < (SIZE_MAX >> 1)) ? (value << 1) : SIZE_MAX;
@@ -49,47 +56,26 @@ static INLINE size_t round(double d)
 	return (d >= 0.0) ? ((size_t)(d + 0.5)) : ((size_t)(d - ((double)((size_t)(d - 1))) + 0.5)) + ((size_t)(d - 1));
 }
 
-#define HASH_STEP() do \
-{ \
-	h = (h ^ (value & 0xFF)) * MAGIC_PRIME; \
-	value >>= CHAR_BIT; \
-} \
-while(0)
-
-static INLINE size_t hash(uint64_t value, const size_t capacity)
-{
-#if SIZE_MAX > UINT32_MAX
-	uint64_t h = UINT64_C(14695981039346656037);
-	const uint64_t MAGIC_PRIME = UINT64_C(1099511628211);
-#else
-	uint32_t h = UINT32_C(2166136261);
-	const uint32_t MAGIC_PRIME = UINT32_C(16777619);
-#endif
-
-	HASH_STEP(); HASH_STEP(); HASH_STEP(); HASH_STEP();
-	HASH_STEP(); HASH_STEP(); HASH_STEP(); HASH_STEP();
-
-	return (size_t)(h % capacity);
-}
-
 static INLINE size_t next_pow2(const size_t minimum)
 {
 	size_t result = 2U;
+
 	while (result < minimum)
 	{
 		result = safe_mult2(result);
 	}
+
 	return result;
 }
 
-static INLINE int alloc_data(struct _hash_set_data *const data, const size_t capacity)
+static INLINE bool alloc_data(struct _hash_set_data *const data, const size_t capacity)
 {
 	memset(data, 0, sizeof(struct _hash_set_data));
 	
 	data->values = (uint64_t*) calloc(capacity, sizeof(uint64_t));
 	if (!data->values)
 	{
-		return 0;
+		return false;
 	}
 
 	data->used = (uint8_t*) calloc((capacity + 7U) / 8U, sizeof(uint8_t));
@@ -97,11 +83,11 @@ static INLINE int alloc_data(struct _hash_set_data *const data, const size_t cap
 	{
 		free(data->values);
 		data->values = NULL;
-		return 0;
+		return false;
 	}
 
 	data->capacity = capacity;
-	return 1;
+	return true;
 }
 
 static INLINE void free_data(struct _hash_set_data *const data)
@@ -122,12 +108,12 @@ static INLINE void free_data(struct _hash_set_data *const data)
 	}
 }
 
-static INLINE int is_used(struct _hash_set_data *const data, const size_t index)
+static INLINE bool is_used(struct _hash_set_data *const data, const size_t index)
 {
 	return (data->used[index / 8U] >> (index % 8U)) & 1U;
 }
 
-static INLINE int find_value(struct _hash_set_data* const data, const uint64_t value, size_t *const index)
+static INLINE bool find_value(struct _hash_set_data* const data, const uint64_t value, size_t *const index)
 {
 	*index = hash(value, data->capacity);
 
@@ -135,7 +121,7 @@ static INLINE int find_value(struct _hash_set_data* const data, const uint64_t v
 	{
 		if (data->values[*index] == value)
 		{
-			return 1;
+			return true;
 		}
 		if (++*index >= data->capacity)
 		{
@@ -143,42 +129,46 @@ static INLINE int find_value(struct _hash_set_data* const data, const uint64_t v
 		}
 	}
 
-	return 0;
+	return false;
 }
 
-static INLINE int insert_value(struct _hash_set_data *const data, const size_t index, const uint64_t value)
+static INLINE bool insert_value(struct _hash_set_data *const data, const size_t index, const uint64_t value)
 {
 	if (is_used(data, index))
 	{
-		return 0;
+		return false;
 	}
 
 	data->values[index] = value;
 	data->used[index / 8U] |= UINT8_C(1) << (index % 8U);
-	return 1;
+
+	return true;
 }
 
-static INLINE int grow_set(hash_set_t *const instance, const size_t new_capacity)
+static INLINE errno_t grow_set(hash_set_t *const instance, const size_t new_capacity)
 {
 	struct _hash_set_data temp;
+	size_t index, k;
+
 	if (!alloc_data(&temp, new_capacity))
 	{
-		return 0;
+		return ENOMEM;
 	}
 
-	for (size_t i = 0; i < instance->data.capacity; ++i)
+	for (k = 0U; k < instance->data.capacity; ++k)
 	{
-		if (is_used(&instance->data, i))
+		if (is_used(&instance->data, k))
 		{
-			const uint64_t value = instance->data.values[i];
-			size_t index;
+			const uint64_t value = instance->data.values[k];
 			if (find_value(&temp, value, &index))
 			{
-				abort(); /*whoops!*/
+				free_data(&temp);
+				return EFAULT;
 			}
 			if (!insert_value(&temp, index, value))
 			{
-				abort(); /*whoops!*/
+				free_data(&temp);
+				return EFAULT;
 			}
 		}
 	}
@@ -186,7 +176,8 @@ static INLINE int grow_set(hash_set_t *const instance, const size_t new_capacity
 	free_data(&instance->data);
 	instance->data = temp;
 	instance->limit = round(instance->data.capacity * instance->load_factor);
-	return 1;
+
+	return 0;
 }
 
 /* ========================================================================= */
@@ -210,6 +201,7 @@ hash_set_t *hash_set_create(const double load_factor, const int fail_fast, const
 	instance->load_factor = (load_factor > 0.0) ? BOUND(0.001953125, load_factor, 1.0) : 0.75;
 	instance->fail_fast = BOOLIFY(fail_fast);
 	instance->limit = round(instance->data.capacity * instance->load_factor);
+
 	return instance;
 }
 
@@ -223,17 +215,18 @@ void hash_set_destroy(hash_set_t *const instance)
 	}
 }
 
-int hash_set_insert(hash_set_t *const instance, const uint64_t value)
+errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 {
+	size_t index;
+
 	if ((!instance) || (!instance->data.values))
 	{
-		return -1;
+		return EINVAL;
 	}
 
-	size_t index;
 	if (find_value(&instance->data, value, &index))
 	{
-		return 0;
+		return EEXIST;
 	}
 
 	if ((instance->size >= instance->limit) || (instance->size >= instance->data.capacity))
@@ -242,50 +235,59 @@ int hash_set_insert(hash_set_t *const instance, const uint64_t value)
 		{
 			if (instance->fail_fast || (instance->size >= instance->data.capacity))
 			{
-				return -1; /*malloc has failed!*/
+				return ENOMEM; /*malloc has failed!*/
 			}
 		}
 		else
 		{
-			if (grow_set(instance, safe_mult2(instance->data.capacity)))
+			const errno_t error = grow_set(instance, safe_mult2(instance->data.capacity));
+			if (error)
 			{
-				if (find_value(&instance->data, value, &index))
+				if (error == ENOMEM)
 				{
-					abort(); /*whoops!*/
+					if (instance->fail_fast || (instance->size >= instance->data.capacity))
+					{
+						return ENOMEM; /*malloc has failed!*/
+					}
+					instance->limit = instance->data.capacity;
+				}
+				else
+				{
+					return error;
 				}
 			}
 			else
 			{
-				if (instance->fail_fast || (instance->size >= instance->data.capacity))
+				if (find_value(&instance->data, value, &index))
 				{
-					return -1; /*malloc has failed!*/
+					return EFAULT;
 				}
-				instance->limit = instance->data.capacity;
 			}
 		}
 	}
 
 	if (!insert_value(&instance->data, index, value))
 	{
-		abort(); /*whoops!*/
+		return EFAULT;
 	}
 
 	++instance->size;
-	return 1;
+	return 0;
 }
 
-int hash_set_contains(hash_set_t *const instance, const uint64_t value)
+errno_t hash_set_contains(hash_set_t *const instance, const uint64_t value)
 {
+	size_t index;
+
 	if ((!instance) || (!instance->data.values))
 	{
-		return -1;
+		return EINVAL;
 	}
 
-	size_t index;
-	return find_value(&instance->data, value, &index);
+	return find_value(&instance->data, value, &index) ? 0 : ENOENT;
 }
 
-size_t hash_set_current_size(hash_set_t *const instance)
+size_t hash_set_size(hash_set_t *const instance)
 {
 	return instance ? instance->size : 0U;
 }
