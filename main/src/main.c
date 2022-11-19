@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include "hash_set.h"
 
@@ -23,34 +24,41 @@ static uint64_t next_rand(void)
 
 int main()
 {
-	hash_set_t *const set = hash_set_create(-1.0, 0, 0U);
-	if (!set)
+	clock_t last_update = clock();
+	uint8_t spinner = 0U;
+
+	hash_set_t *const hash_set = hash_set_create(-1.0, 0, 0U);
+	if (!hash_set)
 	{
 		puts("Allocation has failed!");
 		return EXIT_FAILURE;
 	}
 
-	uint8_t spinner = 0U;
-	clock_t next_update = clock() + (2U * CLOCKS_PER_SEC);
 	for (;;)
 	{
-		const errno_t error = hash_set_insert(set, next_rand() & 0x3FFFFFFFFFFFFFFllu);
+		const errno_t error = hash_set_insert(hash_set, next_rand() & 0x3FFFFFFFFFFFFFFllu);
 		if (error)
 		{
-			printf("Insert has failed! (error: %d)\n", error);
+			char message[128U];
+			if (strerror_s(message, 128U, error))
+			{
+				message[0U] = '\0';
+			}
+			printf("Insert has failed! (error: %d) [%s]\n", error, message);
 			break;
 		}
+
 		if (!(++spinner & 0x7F))
 		{
 			const clock_t now = clock();
-			if (now >= next_update)
+			if ((now < last_update) || (now >= last_update + CLOCKS_PER_SEC))
 			{
-				printf("%zu\n", hash_set_size(set));
-				next_update = now + (2U * CLOCKS_PER_SEC);
+				printf("%zu\n", hash_set_size(hash_set));
+				last_update = now;
 			}
 		}
 	}
 
-	hash_set_destroy(set);
+	hash_set_destroy(hash_set);
 	return EXIT_SUCCESS;
 }
