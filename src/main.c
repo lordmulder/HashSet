@@ -25,19 +25,24 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	clock_t now, next_update = clock();
+	uint8_t spinner = 0U;
+	clock_t next_update = clock() + (2U * CLOCKS_PER_SEC);
 	for (;;)
 	{
-		const int ret = hash_set_insert(set, next_rand() & 0xFFFFFFFFFFFFFFllu);
+		const int ret = hash_set_insert(set, next_rand() & 0x3FFFFFFFFFFFFFFllu);
 		if (ret != 1)
 		{
 			printf("Error! (%d)\n", ret);
 			break;
 		}
-		if ((now = clock()) >= next_update)
+		if (!(++spinner & 0x7F))
 		{
-			printf("%zu\n", hash_set_current_size(set));
-			next_update = now + (3U * CLOCKS_PER_SEC);
+			const clock_t now = clock();
+			if (now >= next_update)
+			{
+				printf("%zu\n", hash_set_current_size(set));
+				next_update = now + (2U * CLOCKS_PER_SEC);
+			}
 		}
 	}
 

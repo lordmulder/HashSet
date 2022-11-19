@@ -27,8 +27,8 @@ struct _hash_set
 {
 	double load_factor;
 	int fail_fast;
-	struct _hash_set_data data;
 	size_t size, limit;
+	struct _hash_set_data data;
 };
 
 #define BOUND(MIN,VAL,MAX) (((VAL) < (MIN)) ? (MIN) : (((VAL) > (MAX)) ? (MAX) : (VAL)))
@@ -39,24 +39,9 @@ struct _hash_set
 /* PRIVATE FUNCTIONS                                                         */
 /* ========================================================================= */
 
-static INLINE size_t hash(uint64_t value, const size_t capacity)
+static inline size_t safe_mult2(const size_t value)
 {
-#if SIZE_MAX > UINT32_MAX
-	uint64_t h = UINT64_C(14695981039346656037);
-	for (size_t i = 0U; i < sizeof(uint64_t); ++i, value >>= CHAR_BIT)
-	{
-		h ^= value & 0xFF;
-		h *= UINT64_C(1099511628211);
-	}
-#else
-	uint32_t h = UINT32_C(2166136261);
-	for (size_t i = 0U; i < sizeof(uint64_t); ++i, value >>= CHAR_BIT)
-	{
-		h ^= value & 0xFF;
-		h *= UINT32_C(16777619);
-	}
-#endif
-	return ((size_t) h) % capacity;
+	return (value < (SIZE_MAX >> 1)) ? (value << 1) : SIZE_MAX;
 }
 
 static INLINE size_t round(double d)
@@ -64,15 +49,27 @@ static INLINE size_t round(double d)
 	return (d >= 0.0) ? ((size_t)(d + 0.5)) : ((size_t)(d - ((double)((size_t)(d - 1))) + 0.5)) + ((size_t)(d - 1));
 }
 
-static INLINE size_t safe_mult(const size_t a, const size_t b)
-{
-	if ((a == 0U) || (b == 0U))
-	{
-		return 0U;
-	}
+#define HASH_STEP() do \
+{ \
+	h = (h ^ (value & 0xFF)) * MAGIC_PRIME; \
+	value >>= CHAR_BIT; \
+} \
+while(0)
 
-	const size_t result = a * b;
-	return(result / a != b) ? SIZE_MAX : result;
+static INLINE size_t hash(uint64_t value, const size_t capacity)
+{
+#if SIZE_MAX > UINT32_MAX
+	uint64_t h = UINT64_C(14695981039346656037);
+	const uint64_t MAGIC_PRIME = UINT64_C(1099511628211);
+#else
+	uint32_t h = UINT32_C(2166136261);
+	const uint32_t MAGIC_PRIME = UINT32_C(16777619);
+#endif
+
+	HASH_STEP(); HASH_STEP(); HASH_STEP(); HASH_STEP();
+	HASH_STEP(); HASH_STEP(); HASH_STEP(); HASH_STEP();
+
+	return (size_t)(h % capacity);
 }
 
 static INLINE size_t next_pow2(const size_t minimum)
@@ -80,7 +77,7 @@ static INLINE size_t next_pow2(const size_t minimum)
 	size_t result = 2U;
 	while (result < minimum)
 	{
-		result = safe_mult(result, 2U);
+		result = safe_mult2(result);
 	}
 	return result;
 }
@@ -111,19 +108,17 @@ static INLINE void free_data(struct _hash_set_data *const data)
 {
 	if (data)
 	{
+		data->capacity = 0U;
 		if (data->values)
 		{
 			free(data->values);
 			data->values = NULL;
 		}
-
 		if (data->used)
 		{
 			free(data->used);
 			data->used = NULL;
 		}
-
-		data->capacity = 0U;
 	}
 }
 
@@ -132,45 +127,35 @@ static INLINE int is_used(struct _hash_set_data *const data, const size_t index)
 	return (data->used[index / 8U] >> (index % 8U)) & 1U;
 }
 
-static INLINE int find_value(struct _hash_set_data* const data, const uint64_t value, size_t *const index_out)
+static INLINE int find_value(struct _hash_set_data* const data, const uint64_t value, size_t *const index)
 {
-	size_t index = hash(value, data->capacity);
+	*index = hash(value, data->capacity);
 
-	while (is_used(data, index))
+	while (is_used(data, *index))
 	{
-		if (data->values[index] == value)
+		if (data->values[*index] == value)
 		{
-			if (index_out)
-			{
-				*index_out = index;
-			}
 			return 1;
 		}
-		if (++index >= data->capacity)
+		if (++*index >= data->capacity)
 		{
-			index = 0U;
+			*index = 0U;
 		}
-	}
-
-	if (index_out)
-	{
-		*index_out = index;
 	}
 
 	return 0;
 }
 
-static INLINE void insert_value(struct _hash_set_data *const data, const size_t index, const uint64_t value)
+static INLINE int insert_value(struct _hash_set_data *const data, const size_t index, const uint64_t value)
 {
-	data->values[index] = value;
-	data->used[index / 8U] |= 1U << (index % 8U);
-}
+	if (is_used(data, index))
+	{
+		return 0;
+	}
 
-static INLINE void swap_data(struct _hash_set_data *const a, struct _hash_set_data *const b)
-{
-	struct _hash_set_data temp = *a;
-	*a = *b;
-	*b = temp;
+	data->values[index] = value;
+	data->used[index / 8U] |= UINT8_C(1) << (index % 8U);
+	return 1;
 }
 
 static INLINE int grow_set(hash_set_t *const instance, const size_t new_capacity)
@@ -191,12 +176,15 @@ static INLINE int grow_set(hash_set_t *const instance, const size_t new_capacity
 			{
 				abort(); /*whoops!*/
 			}
-			insert_value(&temp, index, value);
+			if (!insert_value(&temp, index, value))
+			{
+				abort(); /*whoops!*/
+			}
 		}
 	}
 
-	swap_data(&instance->data, &temp);
-	free_data(&temp);
+	free_data(&instance->data);
+	instance->data = temp;
 	instance->limit = round(instance->data.capacity * instance->load_factor);
 	return 1;
 }
@@ -259,7 +247,7 @@ int hash_set_insert(hash_set_t *const instance, const uint64_t value)
 		}
 		else
 		{
-			if (grow_set(instance, safe_mult(instance->data.capacity, 2U)))
+			if (grow_set(instance, safe_mult2(instance->data.capacity)))
 			{
 				if (find_value(&instance->data, value, &index))
 				{
@@ -277,7 +265,11 @@ int hash_set_insert(hash_set_t *const instance, const uint64_t value)
 		}
 	}
 
-	insert_value(&instance->data, index, value);
+	if (!insert_value(&instance->data, index, value))
+	{
+		abort(); /*whoops!*/
+	}
+
 	++instance->size;
 	return 1;
 }
@@ -289,7 +281,8 @@ int hash_set_contains(hash_set_t *const instance, const uint64_t value)
 		return -1;
 	}
 
-	return find_value(&instance->data, value, NULL);
+	size_t index;
+	return find_value(&instance->data, value, &index);
 }
 
 size_t hash_set_current_size(hash_set_t *const instance)
