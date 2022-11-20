@@ -34,7 +34,7 @@ struct _hash_set
 {
 	double load_factor;
 	uint16_t options;
-	size_t total, valid, limit;
+	size_t count, deleted, limit;
 	struct _hash_set_data data;
 };
 
@@ -54,7 +54,7 @@ struct _hash_set
 
 static FORCE_INLINE size_t round_sz(double d)
 {
-	return (d >= 0.0) ? ((size_t)(d + 0.5)) : ((size_t)0U);
+	return (d >= 0.0) ? ((d > ((double)SIZE_MAX)) ? SIZE_MAX : ((size_t)(d + 0.5))) : 0U;
 }
 
 static FORCE_INLINE size_t div_ceil(const size_t value, const size_t divisor)
@@ -69,7 +69,7 @@ static FORCE_INLINE size_t safe_mult2(const size_t value)
 
 static FORCE_INLINE size_t next_pow2(const size_t minimum)
 {
-	size_t result = 2U;
+	size_t result = sizeof(uint64_t);
 
 	while (result < minimum)
 	{
@@ -211,15 +211,22 @@ static INLINE bool_t store_value(struct _hash_set_data *const data, const size_t
 		clear_flag(data->deleted, index);
 		return FALSE;
 	}
-
-	set_flag(data->used, index);
-	return TRUE;
+	else
+	{
+		set_flag(data->used, index);
+		return TRUE;
+	}
 }
 
-static INLINE errno_t grow_set(hash_set_t *const instance, const size_t new_capacity)
+static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_capacity)
 {
 	struct _hash_set_data temp;
 	size_t index, k;
+
+	if (new_capacity < instance->data.capacity)
+	{
+		return EINVAL;
+	}
 
 	if (!alloc_data(&temp, new_capacity))
 	{
@@ -234,12 +241,12 @@ static INLINE errno_t grow_set(hash_set_t *const instance, const size_t new_capa
 			if (find_slot(&temp, value, &index))
 			{
 				free_data(&temp);
-				return EFAULT;
+				return EFAULT; /*should never happen!*/
 			}
 			if (!store_value(&temp, index, value))
 			{
 				free_data(&temp);
-				return EFAULT;
+				return EFAULT; /*should never happen!*/
 			}
 		}
 	}
@@ -247,7 +254,7 @@ static INLINE errno_t grow_set(hash_set_t *const instance, const size_t new_capa
 	free_data(&instance->data);
 	instance->data = temp;
 	instance->limit = round_sz(instance->data.capacity * instance->load_factor);
-	instance->total = instance->valid;
+	instance->deleted = 0U;
 
 	return 0;
 }
@@ -301,27 +308,27 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 		return EEXIST;
 	}
 
-	while ((instance->total >= instance->limit) || (instance->valid >= instance->data.capacity))
+	while ((instance->count >= instance->limit) || (instance->count >= instance->data.capacity))
 	{
 		if (instance->data.capacity == SIZE_MAX)
 		{
-			if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->valid >= instance->data.capacity))
+			if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->count >= instance->data.capacity))
 			{
 				return ENOMEM; /*malloc has failed!*/
 			}
 		}
 		else
 		{
-			const errno_t error = grow_set(instance, safe_mult2(instance->data.capacity));
+			const errno_t error = rebuild_set(instance, safe_mult2(instance->data.capacity));
 			if (error)
 			{
-				instance->limit = instance->data.capacity;
 				if (error == ENOMEM)
 				{
-					if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->valid >= instance->data.capacity))
+					if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->count >= instance->data.capacity))
 					{
 						return ENOMEM; /*malloc has failed!*/
 					}
+					instance->limit = SIZE_MAX;
 				}
 				else
 				{
@@ -338,12 +345,12 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 		}
 	}
 
-	if (store_value(&instance->data, index, value))
+	if (!store_value(&instance->data, index, value))
 	{
-		++instance->total;
+		--instance->deleted;
 	}
-	
-	++instance->valid;
+
+	++instance->count;
 	return 0;
 }
 
@@ -357,7 +364,7 @@ errno_t hash_set_contains(const hash_set_t *const instance, const uint64_t value
 	return find_slot(&instance->data, value, NULL) ? 0 : ENOENT;
 }
 
-errno_t hash_set_remove(hash_set_t* const instance, const uint64_t value)
+errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value)
 {
 	size_t index;
 
@@ -372,7 +379,16 @@ errno_t hash_set_remove(hash_set_t* const instance, const uint64_t value)
 	}
 
 	set_flag(instance->data.deleted, index);
-	--instance->valid;
+	--instance->count;
+
+	if (++instance->deleted > (instance->data.capacity >> 1))
+	{
+		const errno_t error = rebuild_set(instance, next_pow2(round_sz(instance->count / instance->load_factor)));
+		if (error && ((error != ENOMEM) || (instance->options & HASHSET_OPT_FAILFAST)))
+		{
+			return error;
+		}
+	}
 
 	return 0;
 }
@@ -405,5 +421,5 @@ errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset,
 
 size_t hash_set_size(hash_set_t *const instance)
 {
-	return instance ? instance->valid : 0U;
+	return instance ? instance->count : 0U;
 }
