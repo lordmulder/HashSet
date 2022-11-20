@@ -14,15 +14,19 @@ extern "C" {
 #endif
 
 #define HASHSET_OPT_FAILFAST UINT16_C(0x1)
+#define HASHSET_ITERATOR_INIT ((size_t)0U)
 
 struct _hash_set;
 typedef struct _hash_set hash_set_t;
 
 hash_set_t *hash_set_create(const size_t initial_capacity, const double load_factor, const uint16_t options);
-void hash_set_destroy(hash_set_t *const instance);
+void hash_set_destroy(hash_set_t *instance);
 
 errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value);
-errno_t hash_set_contains(hash_set_t *const instance, const uint64_t value);
+errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value);
+
+errno_t hash_set_contains(const hash_set_t *const instance, const uint64_t value);
+errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset, uint64_t *const value);
 
 size_t hash_set_size(hash_set_t *const instance);
 
