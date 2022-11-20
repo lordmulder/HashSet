@@ -8,7 +8,10 @@
 /* CRT */
 #include <string.h>
 #include <errno.h>
-#include <stdbool.h>
+
+typedef int bool_t;
+#define TRUE 1
+#define FALSE 0
 
 #if defined(__GNUC__)
 #  define INLINE __inline__
@@ -53,7 +56,7 @@ static INLINE size_t safe_mult2(const size_t value)
 	return (value < (SIZE_MAX >> 1)) ? (value << 1) : SIZE_MAX;
 }
 
-static INLINE size_t round(double d)
+static INLINE size_t round_sz(double d)
 {
 	return (d >= 0.0) ? ((size_t)(d + 0.5)) : ((size_t)(d - ((double)((size_t)(d - 1))) + 0.5)) + ((size_t)(d - 1));
 }
@@ -76,21 +79,21 @@ static INLINE size_t next_pow2(const size_t minimum)
 	return result;
 }
 
-static INLINE bool alloc_data(struct _hash_set_data *const data, const size_t capacity)
+static INLINE bool_t alloc_data(struct _hash_set_data *const data, const size_t capacity)
 {
 	memset(data, 0, sizeof(struct _hash_set_data));
 	
 	data->values = (uint64_t*) calloc(capacity, sizeof(uint64_t));
 	if (!data->values)
 	{
-		return false;
+		return FALSE;
 	}
 
 	data->used = (uint8_t*) calloc((capacity / 8U) + ((capacity % 8U != 0U) ? 1U : 0U), sizeof(uint8_t));
 	if (!data->used)
 	{
 		SAFE_FREE(data->values);
-		return false;
+		return FALSE;
 	}
 
 	data->deleted = (uint8_t*) calloc((capacity / 8U) + ((capacity % 8U != 0U) ? 1U : 0U), sizeof(uint8_t));
@@ -98,11 +101,11 @@ static INLINE bool alloc_data(struct _hash_set_data *const data, const size_t ca
 	{
 		SAFE_FREE(data->used);
 		SAFE_FREE(data->values);
-		return false;
+		return FALSE;
 	}
 
 	data->capacity = capacity;
-	return true;
+	return TRUE;
 }
 
 static INLINE void free_data(struct _hash_set_data *const data)
@@ -116,7 +119,7 @@ static INLINE void free_data(struct _hash_set_data *const data)
 	}
 }
 
-static INLINE bool get_flag(const uint8_t *const flags, const size_t index)
+static INLINE bool_t get_flag(const uint8_t *const flags, const size_t index)
 {
 	return (flags[index / 8U] >> (index % 8U)) & 1U;
 }
@@ -131,10 +134,10 @@ static INLINE void clear_flag(uint8_t *const flags, const size_t index)
 	flags[index / 8U] &= ~(UINT8_C(1) << (index % 8U));
 }
 
-static INLINE bool find_slot(const struct _hash_set_data *const data, const uint64_t value, size_t *const index_out)
+static INLINE bool_t find_slot(const struct _hash_set_data *const data, const uint64_t value, size_t *const index_out)
 {
 	size_t index;
-	bool index_saved = false;
+	bool_t index_saved = FALSE;
 
 	for (index = hash(value, data->capacity); get_flag(data->used, index); index = increment(index, data->capacity))
 	{
@@ -146,13 +149,13 @@ static INLINE bool find_slot(const struct _hash_set_data *const data, const uint
 				{
 					*index_out = index;
 				}
-				return true;
+				return TRUE;
 			}
 		}
 		else if ((!index_saved) && index_out)
 		{
 			*index_out = index;
-			index_saved = true;
+			index_saved = TRUE;
 		}
 	}
 
@@ -161,21 +164,21 @@ static INLINE bool find_slot(const struct _hash_set_data *const data, const uint
 		*index_out = index;
 	}
 
-	return false;
+	return FALSE;
 }
 
-static INLINE bool store_value(struct _hash_set_data *const data, const size_t index, const uint64_t value)
+static INLINE bool_t store_value(struct _hash_set_data *const data, const size_t index, const uint64_t value)
 {
 	data->values[index] = value;
 
 	if (get_flag(data->used, index))
 	{
 		clear_flag(data->deleted, index);
-		return false;
+		return FALSE;
 	}
 
 	set_flag(data->used, index);
-	return true;
+	return TRUE;
 }
 
 static INLINE errno_t grow_set(hash_set_t *const instance, const size_t new_capacity)
@@ -208,7 +211,7 @@ static INLINE errno_t grow_set(hash_set_t *const instance, const size_t new_capa
 
 	free_data(&instance->data);
 	instance->data = temp;
-	instance->limit = round(instance->data.capacity * instance->load_factor);
+	instance->limit = round_sz(instance->data.capacity * instance->load_factor);
 	instance->total = instance->valid;
 
 	return 0;
@@ -234,7 +237,7 @@ hash_set_t *hash_set_create(const size_t initial_capacity, const double load_fac
 
 	instance->load_factor = (load_factor > 0.0) ? BOUND(0.1, load_factor, 1.0) : 0.75;
 	instance->options = options;
-	instance->limit = round(instance->data.capacity * instance->load_factor);
+	instance->limit = round_sz(instance->data.capacity * instance->load_factor);
 
 	return instance;
 }
