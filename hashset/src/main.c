@@ -39,15 +39,9 @@ int main()
 		const errno_t error = hash_set_insert(hash_set, next_rand() & 0x3FFFFFFFFFFFFFFllu);
 		if (error)
 		{
-			char message[128U];
-			if (strerror_s(message, 128U, error))
-			{
-				message[0U] = '\0';
-			}
-			printf("Insert has failed! (error: %d) [%s]\n", error, message);
+			printf("Insert operation has failed! (error: %d)\n", error);
 			break;
 		}
-
 		if (!(++spinner & 0x7F))
 		{
 			const clock_t now = clock();

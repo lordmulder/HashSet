@@ -15,8 +15,10 @@ typedef int bool_t;
 
 #if defined(__GNUC__)
 #  define INLINE __inline__
+#  define FORCE_INLINE __attribute__((always_inline)) __inline__
 #elif defined(_MSC_VER)
 #  define INLINE __inline
+#  define FORCE_INLINE __forceinline
 #else
 #  define INLINE
 #endif
@@ -46,28 +48,35 @@ struct _hash_set
 /* PRIVATE FUNCTIONS                                                         */
 /* ========================================================================= */
 
-static INLINE size_t hash(const uint64_t value, const size_t capacity)
+static FORCE_INLINE void hash_u64(uint64_t *const h, uint64_t value)
 {
-	return (size_t) (((UINT64_C(14695981039346656037) + value) * UINT64_C(1099511628211)) % capacity);
+	do
+	{
+		*h ^= value & 0xFF;
+		*h *= UINT64_C(1099511628211);
+	}
+	while (value >>= CHAR_BIT);
 }
 
-static INLINE size_t safe_mult2(const size_t value)
+static INLINE size_t hash(const uint64_t value, const uint64_t tweak, const size_t capacity)
+{
+	uint64_t h = UINT64_C(14695981039346656037);
+	hash_u64(&h, tweak);
+	hash_u64(&h, value);
+	return (size_t)(h % ((uint64_t)capacity));
+}
+
+static FORCE_INLINE size_t safe_mult2(const size_t value)
 {
 	return (value < (SIZE_MAX >> 1)) ? (value << 1) : SIZE_MAX;
 }
 
-static INLINE size_t round_sz(double d)
+static FORCE_INLINE size_t round_sz(double d)
 {
 	return (d >= 0.0) ? ((size_t)(d + 0.5)) : ((size_t)(d - ((double)((size_t)(d - 1))) + 0.5)) + ((size_t)(d - 1));
 }
 
-static INLINE size_t increment(const size_t value, const size_t bound)
-{
-	const size_t result = value + 1U;
-	return (result >= bound) ? 0U : result;
-}
-
-static INLINE size_t next_pow2(const size_t minimum)
+static FORCE_INLINE size_t next_pow2(const size_t minimum)
 {
 	size_t result = 2U;
 
@@ -138,8 +147,9 @@ static INLINE bool_t find_slot(const struct _hash_set_data *const data, const ui
 {
 	size_t index;
 	bool_t index_saved = FALSE;
+	uint64_t tweak = 0U;
 
-	for (index = hash(value, data->capacity); get_flag(data->used, index); index = increment(index, data->capacity))
+	for (index = hash(value, tweak, data->capacity); get_flag(data->used, index); index = hash(value, ++tweak, data->capacity))
 	{
 		if (!get_flag(data->deleted, index))
 		{
