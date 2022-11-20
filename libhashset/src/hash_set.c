@@ -38,15 +38,50 @@ struct _hash_set
 	struct _hash_set_data data;
 };
 
+/* ========================================================================= */
+/* PRIVATE FUNCTIONS                                                         */
+/* ========================================================================= */
+
 #define IS_VALID(X,Y) (get_flag((X).used, (Y)) && (!get_flag((X).deleted, (Y))))
 
 #define BOUND(MIN,VAL,MAX) (((VAL) < (MIN)) ? (MIN) : (((VAL) > (MAX)) ? (MAX) : (VAL)))
 
 #define SAFE_FREE(X) do { if ((X)) { free((X)); (X) = NULL; } } while(0)
 
-/* ========================================================================= */
-/* PRIVATE FUNCTIONS                                                         */
-/* ========================================================================= */
+/* ------------------------------------------------- */
+/* Math                                              */
+/* ------------------------------------------------- */
+
+static FORCE_INLINE size_t round_sz(double d)
+{
+	return (d >= 0.0) ? ((size_t)(d + 0.5)) : ((size_t)0U);
+}
+
+static FORCE_INLINE size_t div_ceil(const size_t value, const size_t divisor)
+{
+	return (value / divisor) + ((value % divisor != 0U) ? 1U : 0U);
+}
+
+static FORCE_INLINE size_t safe_mult2(const size_t value)
+{
+	return (value < (SIZE_MAX >> 1)) ? (value << 1) : SIZE_MAX;
+}
+
+static FORCE_INLINE size_t next_pow2(const size_t minimum)
+{
+	size_t result = 2U;
+
+	while (result < minimum)
+	{
+		result = safe_mult2(result);
+	}
+
+	return result;
+}
+
+/* ------------------------------------------------- */
+/* Hash function                                     */
+/* ------------------------------------------------- */
 
 static FORCE_INLINE void hash_u64(uint64_t *const h, uint64_t value)
 {
@@ -66,27 +101,9 @@ static INLINE size_t hash(const uint64_t value, const uint64_t tweak, const size
 	return (size_t)(h % ((uint64_t)capacity));
 }
 
-static FORCE_INLINE size_t safe_mult2(const size_t value)
-{
-	return (value < (SIZE_MAX >> 1)) ? (value << 1) : SIZE_MAX;
-}
-
-static FORCE_INLINE size_t round_sz(double d)
-{
-	return (d >= 0.0) ? ((size_t)(d + 0.5)) : ((size_t)(d - ((double)((size_t)(d - 1))) + 0.5)) + ((size_t)(d - 1));
-}
-
-static FORCE_INLINE size_t next_pow2(const size_t minimum)
-{
-	size_t result = 2U;
-
-	while (result < minimum)
-	{
-		result = safe_mult2(result);
-	}
-
-	return result;
-}
+/* ------------------------------------------------- */
+/* Allocation                                        */
+/* ------------------------------------------------- */
 
 static INLINE bool_t alloc_data(struct _hash_set_data *const data, const size_t capacity)
 {
@@ -98,14 +115,14 @@ static INLINE bool_t alloc_data(struct _hash_set_data *const data, const size_t 
 		return FALSE;
 	}
 
-	data->used = (uint8_t*) calloc((capacity / 8U) + ((capacity % 8U != 0U) ? 1U : 0U), sizeof(uint8_t));
+	data->used = (uint8_t*) calloc(div_ceil(capacity, 8U), sizeof(uint8_t));
 	if (!data->used)
 	{
 		SAFE_FREE(data->values);
 		return FALSE;
 	}
 
-	data->deleted = (uint8_t*) calloc((capacity / 8U) + ((capacity % 8U != 0U) ? 1U : 0U), sizeof(uint8_t));
+	data->deleted = (uint8_t*) calloc(div_ceil(capacity,  8U), sizeof(uint8_t));
 	if (!data->deleted)
 	{
 		SAFE_FREE(data->used);
@@ -128,20 +145,28 @@ static INLINE void free_data(struct _hash_set_data *const data)
 	}
 }
 
-static INLINE bool_t get_flag(const uint8_t *const flags, const size_t index)
+/* ------------------------------------------------- */
+/* Flags                                             */
+/* ------------------------------------------------- */
+
+static INLINE bool_t get_flag(const uint8_t* const flags, const size_t index)
 {
 	return (flags[index / 8U] >> (index % 8U)) & 1U;
 }
 
-static INLINE void set_flag(uint8_t *const flags, const size_t index)
+static INLINE void set_flag(uint8_t* const flags, const size_t index)
 {
 	flags[index / 8U] |= UINT8_C(1) << (index % 8U);
 }
 
-static INLINE void clear_flag(uint8_t *const flags, const size_t index)
+static INLINE void clear_flag(uint8_t* const flags, const size_t index)
 {
 	flags[index / 8U] &= ~(UINT8_C(1) << (index % 8U));
 }
+
+/* ------------------------------------------------- */
+/* Set functions                                     */
+/* ------------------------------------------------- */
 
 static INLINE bool_t find_slot(const struct _hash_set_data *const data, const uint64_t value, size_t *const index_out)
 {

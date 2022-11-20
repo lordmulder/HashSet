@@ -1,5 +1,6 @@
 /.vs
 /*.suo
 /*.user
+/**/bin
+/**/lib
 /**/obj
-/bin
