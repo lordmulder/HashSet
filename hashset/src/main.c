@@ -47,7 +47,15 @@ int main()
 			const clock_t now = clock();
 			if ((now < last_update) || (now >= last_update + CLOCKS_PER_SEC))
 			{
-				printf("%zu\n", hash_set_size(hash_set));
+				size_t capacity, valid, deleted, limit;
+				if (!hash_set_info(hash_set, &capacity, &valid, &deleted, &limit))
+				{
+					printf("%010zu, %010zu, %010zu, %010zu\n", capacity, valid, deleted, limit);
+				}
+				else
+				{
+					printf("%zu\n", hash_set_size(hash_set));
+				}
 				last_update = now;
 			}
 		}

@@ -34,7 +34,7 @@ struct _hash_set
 {
 	double load_factor;
 	uint16_t options;
-	size_t count, deleted, limit;
+	size_t valid, deleted, limit;
 	struct _hash_set_data data;
 };
 
@@ -52,19 +52,34 @@ struct _hash_set
 /* Math                                              */
 /* ------------------------------------------------- */
 
-static FORCE_INLINE size_t round_sz(double d)
-{
-	return (d >= 0.0) ? ((d > ((double)SIZE_MAX)) ? SIZE_MAX : ((size_t)(d + 0.5))) : 0U;
-}
-
 static FORCE_INLINE size_t div_ceil(const size_t value, const size_t divisor)
 {
 	return (value / divisor) + ((value % divisor != 0U) ? 1U : 0U);
 }
 
+static FORCE_INLINE size_t round_sz(double d)
+{
+	return (d >= 0.0) ? ((d + 0.5 >= ((double)SIZE_MAX)) ? SIZE_MAX : ((size_t)(d + 0.5))) : 0U;
+}
+
 static FORCE_INLINE size_t safe_mult2(const size_t value)
 {
 	return (value < (SIZE_MAX >> 1)) ? (value << 1) : SIZE_MAX;
+}
+
+static FORCE_INLINE size_t safe_add(const size_t a, const size_t b)
+{
+	return ((SIZE_MAX - a) > b) ? (a + b) : SIZE_MAX;
+}
+
+static FORCE_INLINE size_t safe_incr(const size_t value)
+{
+	return (value < SIZE_MAX) ? (value + 1U) : SIZE_MAX;
+}
+
+static FORCE_INLINE size_t safe_decr(const size_t value)
+{
+	return (value > 0U) ? (value - 1U) : 0U;
 }
 
 static FORCE_INLINE size_t next_pow2(const size_t minimum)
@@ -308,11 +323,11 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 		return EEXIST;
 	}
 
-	while ((instance->count >= instance->limit) || (instance->count >= instance->data.capacity))
+	while ((safe_add(instance->valid, instance->deleted) >= instance->limit) || (instance->valid >= instance->data.capacity))
 	{
 		if (instance->data.capacity == SIZE_MAX)
 		{
-			if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->count >= instance->data.capacity))
+			if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->valid >= instance->data.capacity))
 			{
 				return ENOMEM; /*malloc has failed!*/
 			}
@@ -324,7 +339,7 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 			{
 				if (error == ENOMEM)
 				{
-					if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->count >= instance->data.capacity))
+					if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->valid >= instance->data.capacity))
 					{
 						return ENOMEM; /*malloc has failed!*/
 					}
@@ -347,10 +362,10 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 
 	if (!store_value(&instance->data, index, value))
 	{
-		--instance->deleted;
+		instance->deleted = safe_decr(instance->deleted);
 	}
 
-	++instance->count;
+	instance->valid = safe_incr(instance->valid);
 	return 0;
 }
 
@@ -379,11 +394,12 @@ errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value)
 	}
 
 	set_flag(instance->data.deleted, index);
-	--instance->count;
+	instance->deleted = safe_incr(instance->deleted);
+	instance->valid = safe_decr(instance->valid);
 
-	if (++instance->deleted > (instance->data.capacity >> 1))
+	if (instance->deleted > (instance->data.capacity >> 1))
 	{
-		const errno_t error = rebuild_set(instance, next_pow2(round_sz(instance->count / instance->load_factor)));
+		const errno_t error = rebuild_set(instance, next_pow2(round_sz(instance->valid / instance->load_factor)));
 		if (error && ((error != ENOMEM) || (instance->options & HASHSET_OPT_FAILFAST)))
 		{
 			return error;
@@ -421,5 +437,32 @@ errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset,
 
 size_t hash_set_size(hash_set_t *const instance)
 {
-	return instance ? instance->count : 0U;
+	return instance ? instance->valid : 0U;
+}
+
+errno_t hash_set_info(hash_set_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit)
+{
+	if ((!instance) || (!instance->data.values))
+	{
+		return EINVAL;
+	}
+
+	if (capacity)
+	{
+		*capacity = instance->data.capacity;
+	}
+	if (valid)
+	{
+		*valid = instance->valid;
+	}
+	if (deleted)
+	{
+		*deleted = instance->deleted;
+	}
+	if (limit)
+	{
+		*limit = instance->limit;
+	}
+
+	return 0;
 }
