@@ -21,9 +21,12 @@ static uint64_t next_rand(void)
 	}
 	return (((uint64_t)a) << 32) | b;
 }
+#define MAXIMUM 393216U
 
 int main()
 {
+	uint64_t rnd;
+	size_t capacity, valid, deleted, limit;
 	uint8_t spinner = 0U;
 	clock_t last_update = clock();
 
@@ -34,12 +37,132 @@ int main()
 		return EXIT_FAILURE;
 	}
 
+	for (size_t r = 0; r < 5; ++r)
+	{
+		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		{
+			if ((i != 3167U) && (i != 9887U) && (i != 185903U) && (i != 387083U))
+			{
+				const errno_t error = hash_set_insert(hash_set, i);
+				if (error)
+				{
+					printf("Insert operation has failed! (error: %d)\n", error);
+					return EXIT_FAILURE;
+				}
+			}
+			if (!hash_set_info(hash_set, &capacity, &valid, &deleted, &limit))
+			{
+				printf("%010zu, %010zu, %010zu, %010zu\n", capacity, valid, deleted, limit);
+			}
+		}
+
+		if (hash_set_size(hash_set) != MAXIMUM - 4U)
+		{
+			puts("Invalid size!");
+			return EXIT_FAILURE;
+		}
+
+		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		{
+			if ((i != 3167U) && (i != 9887U) && (i != 387083U))
+			{
+				const errno_t error = hash_set_insert(hash_set, i);
+				if (error != ((i != 185903U) ? EEXIST : 0))
+				{
+					printf("Insert operation has failed! (error: %d)\n", error);
+					return EXIT_FAILURE;
+				}
+			}
+		}
+
+		if (hash_set_size(hash_set) != MAXIMUM - 3U)
+		{
+			puts("Invalid size!");
+			return EXIT_FAILURE;
+		}
+
+		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		{
+			const errno_t error = hash_set_contains(hash_set, i);
+			if (error != ((i != 3167U) && (i != 9887U) && (i != 387083U)) ? 0 : ENOENT)
+			{
+				printf("Contains operation has failed! (error: %d)\n", error);
+				return EXIT_FAILURE;
+			}
+		}
+
+		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		{
+			if ((i != 3167U) && (i != 9887U) && (i != 216263U) && (i != 387083U))
+			{
+				const errno_t error = hash_set_remove(hash_set, i);
+				if (error)
+				{
+					printf("Remove operation has failed! (error: %d)\n", error);
+					return EXIT_FAILURE;
+				}
+			}
+			if (!hash_set_info(hash_set, &capacity, &valid, &deleted, &limit))
+			{
+				printf("%010zu, %010zu, %010zu, %010zu\n", capacity, valid, deleted, limit);
+			}
+		}
+
+		if (hash_set_size(hash_set) != 1U)
+		{
+			puts("Invalid size!");
+			return EXIT_FAILURE;
+		}
+
+		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		{
+			const errno_t error = hash_set_contains(hash_set, i);
+			if (error != ((i != 216263U) ? ENOENT : 0))
+			{
+				printf("Contains operation has failed! (error: %d)\n", error);
+				return EXIT_FAILURE;
+			}
+		}
+
+		if (!hash_set_remove(hash_set, 9887U))
+		{
+			puts("Final remove operation has failed!");
+			return EXIT_FAILURE;
+		}
+
+		if (hash_set_remove(hash_set, 216263U))
+		{
+			puts("Final remove operation has failed!");
+			return EXIT_FAILURE;
+		}
+
+		if (hash_set_size(hash_set) != 0U)
+		{
+			puts("Invalid size!");
+			return EXIT_FAILURE;
+		}
+
+		if (!hash_set_info(hash_set, &capacity, &valid, &deleted, &limit))
+		{
+			printf("%010zu, %010zu, %010zu, %010zu\n", capacity, valid, deleted, limit);
+		}
+
+		puts("-----");
+	}
+
 	for (;;)
 	{
-		const errno_t error = hash_set_insert(hash_set, next_rand() & 0x3FFFFFFFFFFFFFFllu);
+		const errno_t error = hash_set_insert(hash_set, rnd = next_rand() & 0x3FFFFFFFFFFFFFFllu);
 		if (error)
 		{
-			printf("Insert operation has failed! (error: %d)\n", error);
+			if (error != EEXIST)
+			{
+				printf("Insert operation has failed! (error: %d)\n", error);
+			}
+			else
+			{
+				printf("Collision detected! [%016llX]\n", rnd);
+			}
 			break;
 		}
 		if (!(++spinner & 0x7F))
@@ -47,20 +170,22 @@ int main()
 			const clock_t now = clock();
 			if ((now < last_update) || (now >= last_update + CLOCKS_PER_SEC))
 			{
-				size_t capacity, valid, deleted, limit;
 				if (!hash_set_info(hash_set, &capacity, &valid, &deleted, &limit))
 				{
 					printf("%010zu, %010zu, %010zu, %010zu\n", capacity, valid, deleted, limit);
-				}
-				else
-				{
-					printf("%zu\n", hash_set_size(hash_set));
 				}
 				last_update = now;
 			}
 		}
 	}
 
+	if (!hash_set_info(hash_set, &capacity, &valid, &deleted, &limit))
+	{
+		printf("%010zu, %010zu, %010zu, %010zu\n", capacity, valid, deleted, limit);
+	}
+
 	hash_set_destroy(hash_set);
+	puts("Test completed successfully.");
+
 	return EXIT_SUCCESS;
 }

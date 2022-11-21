@@ -74,12 +74,12 @@ static FORCE_INLINE size_t safe_add(const size_t a, const size_t b)
 
 static FORCE_INLINE size_t safe_incr(const size_t value)
 {
-	return (value < SIZE_MAX) ? (value + 1U) : SIZE_MAX;
+	return (value < SIZE_MAX) ? (value + 1U) : value;
 }
 
 static FORCE_INLINE size_t safe_decr(const size_t value)
 {
-	return (value > 0U) ? (value - 1U) : 0U;
+	return (value > 0U) ? (value - 1U) : value;
 }
 
 static FORCE_INLINE size_t next_pow2(const size_t minimum)
@@ -238,7 +238,7 @@ static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_c
 	struct _hash_set_data temp;
 	size_t index, k;
 
-	if (new_capacity < instance->data.capacity)
+	if (new_capacity < instance->valid)
 	{
 		return EINVAL;
 	}
