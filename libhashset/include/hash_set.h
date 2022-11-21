@@ -23,12 +23,13 @@ void hash_set_destroy(hash_set_t *instance);
 
 errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value);
 errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value);
+errno_t hash_set_clear(hash_set_t *const instance);
+errno_t hash_set_shrink(hash_set_t *const instance);
 
 errno_t hash_set_contains(const hash_set_t *const instance, const uint64_t value);
 errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset, uint64_t *const value);
-
-size_t hash_set_size(hash_set_t *const instance);
-errno_t hash_set_info(hash_set_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
+size_t hash_set_size(const hash_set_t *const instance);
+errno_t hash_set_info(const hash_set_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
 
 #ifdef __cplusplus
 }

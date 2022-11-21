@@ -38,6 +38,9 @@ struct _hash_set
 	struct _hash_set_data data;
 };
 
+static const size_t MINIMUM_CAPACITY =   128U;
+static const size_t DEFAULT_CAPACITY = 16384U;
+
 /* ========================================================================= */
 /* PRIVATE FUNCTIONS                                                         */
 /* ========================================================================= */
@@ -82,11 +85,11 @@ static FORCE_INLINE size_t safe_decr(const size_t value)
 	return (value > 0U) ? (value - 1U) : value;
 }
 
-static FORCE_INLINE size_t next_pow2(const size_t minimum)
+static FORCE_INLINE size_t next_pow2(const size_t target)
 {
-	size_t result = sizeof(uint64_t);
+	size_t result = MINIMUM_CAPACITY;
 
-	while (result < minimum)
+	while (result < target)
 	{
 		result = safe_mult2(result);
 	}
@@ -286,7 +289,7 @@ hash_set_t *hash_set_create(const size_t initial_capacity, const double load_fac
 		return NULL;
 	}
 
-	if (!alloc_data(&instance->data, (initial_capacity > 0U) ? next_pow2(initial_capacity) : 1024U))
+	if (!alloc_data(&instance->data, (initial_capacity > 0U) ? next_pow2(initial_capacity) : DEFAULT_CAPACITY))
 	{
 		SAFE_FREE(instance);
 		return NULL;
@@ -323,7 +326,14 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 		return EEXIST;
 	}
 
-	while ((safe_add(instance->valid, instance->deleted) >= instance->limit) || (instance->valid >= instance->data.capacity))
+	if (!store_value(&instance->data, index, value))
+	{
+		instance->deleted = safe_decr(instance->deleted);
+	}
+
+	instance->valid = safe_incr(instance->valid);
+
+	while ((safe_add(instance->valid, instance->deleted) > instance->limit) || (instance->valid >= instance->data.capacity))
 	{
 		if (instance->data.capacity == SIZE_MAX)
 		{
@@ -350,22 +360,9 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 					return error;
 				}
 			}
-			else
-			{
-				if (find_slot(&instance->data, value, &index))
-				{
-					return EFAULT;
-				}
-			}
 		}
 	}
 
-	if (!store_value(&instance->data, index, value))
-	{
-		instance->deleted = safe_decr(instance->deleted);
-	}
-
-	instance->valid = safe_incr(instance->valid);
 	return 0;
 }
 
@@ -397,16 +394,50 @@ errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value)
 	instance->deleted = safe_incr(instance->deleted);
 	instance->valid = safe_decr(instance->valid);
 
-	if (instance->deleted > (instance->data.capacity >> 1))
+	if (instance->valid == 0U)
 	{
-		const errno_t error = rebuild_set(instance, next_pow2(round_sz(instance->valid / instance->load_factor)));
-		if (error && ((error != ENOMEM) || (instance->options & HASHSET_OPT_FAILFAST)))
-		{
-			return error;
-		}
+		hash_set_clear(instance); /*optimization*/
 	}
 
 	return 0;
+}
+
+errno_t hash_set_clear(hash_set_t *const instance)
+{
+	if ((!instance) || (!instance->data.values))
+	{
+		return EINVAL;
+	}
+
+	if ((instance->valid == 0U) && (instance->deleted == 0U))
+	{
+		return EAGAIN;
+	}
+
+	memset(instance->data.used,    0, sizeof(uint8_t) * div_ceil(instance->data.capacity, 8U));
+	memset(instance->data.deleted, 0, sizeof(uint8_t) * div_ceil(instance->data.capacity, 8U));
+	instance->valid = instance->deleted = 0U;
+
+	return 0;
+}
+
+errno_t hash_set_shrink(hash_set_t *const instance)
+{
+	if ((!instance) || (!instance->data.values))
+	{
+		return EINVAL;
+	}
+
+	if (instance->data.capacity > MINIMUM_CAPACITY)
+	{
+		const size_t target_capacity = next_pow2(round_sz(safe_add(instance->valid, MINIMUM_CAPACITY) / instance->load_factor));
+		if (instance->data.capacity > target_capacity)
+		{
+			return rebuild_set(instance, target_capacity);
+		}
+	}
+
+	return EAGAIN;
 }
 
 errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset, uint64_t *const value)
@@ -435,12 +466,12 @@ errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset,
 	return ENOENT;
 }
 
-size_t hash_set_size(hash_set_t *const instance)
+size_t hash_set_size(const hash_set_t *const instance)
 {
 	return instance ? instance->valid : 0U;
 }
 
-errno_t hash_set_info(hash_set_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit)
+errno_t hash_set_info(const hash_set_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit)
 {
 	if ((!instance) || (!instance->data.values))
 	{
