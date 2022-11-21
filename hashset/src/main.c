@@ -27,8 +27,8 @@ int main()
 {
 	uint64_t rnd;
 	size_t capacity, valid, deleted, limit;
-	uint8_t spinner = 0U;
-	clock_t last_update = clock();
+	uint8_t spinner;
+	clock_t last_update;
 
 	hash_set_t *const hash_set = hash_set_create(0U, -1.0, HASHSET_OPT_FAILFAST);
 	if (!hash_set)
@@ -149,6 +149,9 @@ int main()
 
 		puts("-----");
 	}
+
+	spinner = 0U;
+	last_update = clock();
 
 	for (;;)
 	{
