@@ -8,6 +8,7 @@
 /* CRT */
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 #include <float.h>
 
 typedef int bool_t;

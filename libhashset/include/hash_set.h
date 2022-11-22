@@ -3,14 +3,19 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
-#ifndef _INC_HASH_SET_H
-#define _INC_HASH_SET_H
+#ifndef _HASHSET_INCLUDED
+#define _HASHSET_INCLUDED
 
 #include <stdlib.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(_ERRNO_T_DEFINED)
+typedef int errno_t;
+#define _ERRNO_T_DEFINED 1
 #endif
 
 #define HASHSET_OPT_FAILFAST UINT16_C(0x1)

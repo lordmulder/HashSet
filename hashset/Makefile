@@ -13,7 +13,7 @@ endif
   EXE_SUFFIX := .exe
 endif
 
-CFLAGS = -O3 -DNDEBUG -I../libhashset/include $(XCFLAGS)
+CFLAGS = -std=c99 -O3 -DNDEBUG -D_DEFAULT_SOURCE -Wpedantic -I../libhashset/include $(XCFLAGS)
 
 SRC_PATH := src
 BIN_PATH := bin

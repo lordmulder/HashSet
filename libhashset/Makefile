@@ -6,7 +6,7 @@ else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
   XCFLAGS = -march=pentiumpro -mtune=intel
 endif
 
-CFLAGS = -O3 -DNDEBUG -Iinclude $(XCFLAGS)
+CFLAGS = -std=c99 -O3 -DNDEBUG -Wpedantic -Iinclude $(XCFLAGS)
 
 SRC_PATH := src
 OBJ_PATH := obj
