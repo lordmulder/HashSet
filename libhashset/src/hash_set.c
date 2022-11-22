@@ -8,6 +8,7 @@
 /* CRT */
 #include <string.h>
 #include <errno.h>
+#include <float.h>
 
 typedef int bool_t;
 #define TRUE 1
@@ -40,6 +41,7 @@ struct _hash_set
 
 static const size_t MINIMUM_CAPACITY =   128U;
 static const size_t DEFAULT_CAPACITY = 16384U;
+static const double DEFAULT_LOADFCTR = 0.8125;
 
 /* ========================================================================= */
 /* PRIVATE FUNCTIONS                                                         */
@@ -55,6 +57,12 @@ static const size_t DEFAULT_CAPACITY = 16384U;
 /* Math                                              */
 /* ------------------------------------------------- */
 
+static FORCE_INLINE size_t safe_mult(const size_t a, const size_t b)
+{
+	const size_t result = a * b;
+	return  ((a == 0U) || (result / a == b)) ? result : SIZE_MAX;
+}
+
 static FORCE_INLINE size_t div_ceil(const size_t value, const size_t divisor)
 {
 	return (value / divisor) + ((value % divisor != 0U) ? 1U : 0U);
@@ -63,11 +71,6 @@ static FORCE_INLINE size_t div_ceil(const size_t value, const size_t divisor)
 static FORCE_INLINE size_t round_sz(double d)
 {
 	return (d >= 0.0) ? ((d + 0.5 >= ((double)SIZE_MAX)) ? SIZE_MAX : ((size_t)(d + 0.5))) : 0U;
-}
-
-static FORCE_INLINE size_t safe_mult2(const size_t value)
-{
-	return (value < (SIZE_MAX >> 1)) ? (value << 1) : SIZE_MAX;
 }
 
 static FORCE_INLINE size_t safe_add(const size_t a, const size_t b)
@@ -91,7 +94,7 @@ static FORCE_INLINE size_t next_pow2(const size_t target)
 
 	while (result < target)
 	{
-		result = safe_mult2(result);
+		result = safe_mult(result, 2U);
 	}
 
 	return result;
@@ -101,19 +104,21 @@ static FORCE_INLINE size_t next_pow2(const size_t target)
 /* Hash function                                     */
 /* ------------------------------------------------- */
 
-#define HASH_OFFSET UINT64_C(14695981039346656037)
-
-#define INDEX(X,Y) ((size_t)((X) % (Y)))
-
-static FORCE_INLINE uint64_t hash_compute(uint64_t hash, uint64_t value)
+static FORCE_INLINE void hash_update(uint64_t *const hash, uint64_t value)
 {
 	do
 	{
-		hash ^= value & 0xFF;
-		hash *= UINT64_C(1099511628211);
+		*hash ^= value & 0xFF;
+		*hash *= UINT64_C(1099511628211);
 	}
 	while (value >>= CHAR_BIT);
+}
 
+static INLINE uint64_t hash_compute(const uint64_t i, const uint64_t value)
+{
+	uint64_t hash = UINT64_C(14695981039346656037);
+	hash_update(&hash, i);
+	hash_update(&hash, value);
 	return hash;
 }
 
@@ -121,9 +126,14 @@ static FORCE_INLINE uint64_t hash_compute(uint64_t hash, uint64_t value)
 /* Allocation                                        */
 /* ------------------------------------------------- */
 
+static INLINE void zero_memory(void* const addr, const size_t count, const size_t size)
+{
+	memset(addr, 0, safe_mult(count, size));
+}
+
 static INLINE bool_t alloc_data(struct _hash_set_data *const data, const size_t capacity)
 {
-	memset(data, 0, sizeof(struct _hash_set_data));
+	zero_memory(data, 1U, sizeof(struct _hash_set_data));
 	
 	data->values = (uint64_t*) calloc(capacity, sizeof(uint64_t));
 	if (!data->values)
@@ -184,15 +194,15 @@ static INLINE void clear_flag(uint8_t* const flags, const size_t index)
 /* Set functions                                     */
 /* ------------------------------------------------- */
 
+#define INDEX(X) ((size_t)((X) % data->capacity))
+
 static INLINE bool_t find_slot(const struct _hash_set_data *const data, const uint64_t value, size_t *const index_out)
 {
+	uint64_t loop = 0U;
 	size_t index;
 	bool_t index_saved = FALSE;
-	uint64_t tweak = 0U;
 
-	const uint64_t hash = hash_compute(HASH_OFFSET, value);
-
-	for (index = INDEX(hash, data->capacity); get_flag(data->used, index); index = INDEX(hash_compute(hash, tweak++), data->capacity))
+	for (index = INDEX(hash_compute(loop, value)); get_flag(data->used, index); index = INDEX(hash_compute(++loop, value)))
 	{
 		if (!get_flag(data->deleted, index))
 		{
@@ -295,7 +305,7 @@ hash_set_t *hash_set_create(const size_t initial_capacity, const double load_fac
 		return NULL;
 	}
 
-	instance->load_factor = (load_factor > 0.0) ? BOUND(0.125, load_factor, 1.0) : 0.8;
+	instance->load_factor = (load_factor > DBL_EPSILON) ? BOUND(0.125, load_factor, 1.0) : DEFAULT_LOADFCTR;
 	instance->options = options;
 	instance->limit = round_sz(instance->data.capacity * instance->load_factor);
 
@@ -307,7 +317,7 @@ void hash_set_destroy(hash_set_t *instance)
 	if (instance)
 	{
 		free_data(&instance->data);
-		memset(instance, 0, sizeof(hash_set_t));
+		zero_memory(instance, 1U, sizeof(hash_set_t));
 		SAFE_FREE(instance);
 	}
 }
@@ -344,7 +354,7 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 		}
 		else
 		{
-			const errno_t error = rebuild_set(instance, safe_mult2(instance->data.capacity));
+			const errno_t error = rebuild_set(instance, safe_mult(instance->data.capacity, 2U));
 			if (error)
 			{
 				if (error == ENOMEM)
@@ -414,10 +424,10 @@ errno_t hash_set_clear(hash_set_t *const instance)
 		return EAGAIN;
 	}
 
-	memset(instance->data.used,    0, sizeof(uint8_t) * div_ceil(instance->data.capacity, 8U));
-	memset(instance->data.deleted, 0, sizeof(uint8_t) * div_ceil(instance->data.capacity, 8U));
-	instance->valid = instance->deleted = 0U;
+	zero_memory(instance->data.used,    div_ceil(instance->data.capacity, 8U), sizeof(uint8_t));
+	zero_memory(instance->data.deleted, div_ceil(instance->data.capacity, 8U), sizeof(uint8_t));
 
+	instance->valid = instance->deleted = 0U;
 	return 0;
 }
 
