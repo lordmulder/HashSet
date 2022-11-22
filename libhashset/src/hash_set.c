@@ -101,22 +101,20 @@ static FORCE_INLINE size_t next_pow2(const size_t target)
 /* Hash function                                     */
 /* ------------------------------------------------- */
 
-static FORCE_INLINE void hash_u64(uint64_t *const h, uint64_t value)
+#define HASH_OFFSET UINT64_C(14695981039346656037)
+
+#define INDEX(X,Y) ((size_t)((X) % (Y)))
+
+static FORCE_INLINE uint64_t hash_compute(uint64_t hash, uint64_t value)
 {
 	do
 	{
-		*h ^= value & 0xFF;
-		*h *= UINT64_C(1099511628211);
+		hash ^= value & 0xFF;
+		hash *= UINT64_C(1099511628211);
 	}
 	while (value >>= CHAR_BIT);
-}
 
-static INLINE size_t hash(const uint64_t value, const uint64_t tweak, const size_t capacity)
-{
-	uint64_t h = UINT64_C(14695981039346656037);
-	hash_u64(&h, tweak);
-	hash_u64(&h, value);
-	return (size_t)(h % ((uint64_t)capacity));
+	return hash;
 }
 
 /* ------------------------------------------------- */
@@ -192,7 +190,9 @@ static INLINE bool_t find_slot(const struct _hash_set_data *const data, const ui
 	bool_t index_saved = FALSE;
 	uint64_t tweak = 0U;
 
-	for (index = hash(value, tweak, data->capacity); get_flag(data->used, index); index = hash(value, ++tweak, data->capacity))
+	const uint64_t hash = hash_compute(HASH_OFFSET, value);
+
+	for (index = INDEX(hash, data->capacity); get_flag(data->used, index); index = INDEX(hash_compute(hash, tweak++), data->capacity))
 	{
 		if (!get_flag(data->deleted, index))
 		{
@@ -295,7 +295,7 @@ hash_set_t *hash_set_create(const size_t initial_capacity, const double load_fac
 		return NULL;
 	}
 
-	instance->load_factor = (load_factor > 0.0) ? BOUND(0.1, load_factor, 1.0) : 0.75;
+	instance->load_factor = (load_factor > 0.0) ? BOUND(0.125, load_factor, 1.0) : 0.8;
 	instance->options = options;
 	instance->limit = round_sz(instance->data.capacity * instance->load_factor);
 
@@ -431,7 +431,7 @@ errno_t hash_set_shrink(hash_set_t *const instance)
 	if (instance->data.capacity > MINIMUM_CAPACITY)
 	{
 		const size_t target_capacity = next_pow2(round_sz(safe_add(instance->valid, MINIMUM_CAPACITY) / instance->load_factor));
-		if (instance->data.capacity > target_capacity)
+		if ((instance->data.capacity > target_capacity) || (instance->deleted > 0U))
 		{
 			return rebuild_set(instance, target_capacity);
 		}

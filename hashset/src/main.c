@@ -37,7 +37,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	for (size_t r = 0; r < 5; ++r)
+	for (size_t r = 0U; r < 5U; ++r)
 	{
 		for (uint64_t i = 0; i < MAXIMUM; ++i)
 		{
@@ -161,12 +161,13 @@ int main()
 			if (error != EEXIST)
 			{
 				printf("Insert operation has failed! (error: %d)\n", error);
+				return EXIT_FAILURE;
 			}
 			else
 			{
 				printf("Collision detected! [%016llX]\n", rnd);
+				break;
 			}
-			break;
 		}
 		if (!(++spinner & 0x7F))
 		{
