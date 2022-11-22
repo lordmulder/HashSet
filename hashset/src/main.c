@@ -29,11 +29,9 @@
 #define ARRAY_SIZE(X) (sizeof(X) / sizeof((X)[0U]))
 
 #ifdef _WIN32
-unsigned char __stdcall SystemFunction036(void *buffer, unsigned long length);
-static int getentropy(void* const buffer, const size_t length)
-{
-	return SystemFunction036(buffer, (unsigned long)length) ? 0 : (-1);
-}
+#define RtlGenRandom SystemFunction036
+#define getentropy(X,Y) (RtlGenRandom((X),(uint32_t)(Y)) ? 0 : (-1))
+unsigned char __stdcall RtlGenRandom(void *buffer, uint32_t length);
 #endif
 
 static INLINE uint64_t random_uint64(void)
