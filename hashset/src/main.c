@@ -288,7 +288,7 @@ static int test_function_3(hash_set_t *const hash_set)
 /* MAIN                                                                      */
 /* ========================================================================= */
 
-int main()
+int main(void)
 {
 	hash_set_t *const hash_set = hash_set_create(0U, -1.0, 0U /*HASHSET_OPT_FAILFAST*/);
 	if (!hash_set)
