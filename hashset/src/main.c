@@ -34,21 +34,31 @@
 unsigned char __stdcall RtlGenRandom(void *buffer, uint32_t length);
 #endif
 
-static INLINE uint64_t random_uint64(void)
+typedef struct
 {
-	static size_t offset = SIZE_MAX;
-	static uint64_t buffer[16U];
+	size_t offset;
+	uint64_t buffer[16U];
+}
+random_t;
 
-	if (offset >= ARRAY_SIZE(buffer))
+static INLINE void random_init(random_t *const rnd)
+{
+	memset(rnd, 0, sizeof(random_t));
+	rnd->offset = SIZE_MAX;
+}
+
+static INLINE uint64_t random_next(random_t *const rnd)
+{
+	if (rnd->offset >= ARRAY_SIZE(rnd->buffer))
 	{
-		offset = 0U;
-		if (getentropy(&buffer, sizeof(buffer)) < 0)
+		rnd->offset = 0U;
+		if (getentropy(rnd->buffer, sizeof(rnd->buffer)) < 0)
 		{
 			abort();
 		}
 	}
 
-	return buffer[offset++];
+	return rnd->buffer[rnd->offset++];
 }
 
 #define PRINT_SET_INFO() do \
@@ -186,9 +196,12 @@ static int test_function_2(hash_set_t *const hash_set)
 	uint8_t spinner = 0U;
 	clock_t last_update = clock();
 
+	random_t random;
+	random_init(&random);
+
 	for (;;)
 	{
-		const uint64_t rnd = random_uint64() & UINT64_C(0x3FFFFFFFFFFFFFF);
+		const uint64_t rnd = random_next(&random) & UINT64_C(0x3FFFFFFFFFFFFFF);
 		const errno_t error = hash_set_insert(hash_set, rnd);
 		if (error)
 		{
