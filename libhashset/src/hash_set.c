@@ -41,9 +41,9 @@ struct _hash_set
 	struct _hash_set_data data;
 };
 
-static const size_t MINIMUM_CAPACITY =   128U;
-static const size_t DEFAULT_CAPACITY = 16384U;
-static const double DEFAULT_LOADFCTR =    0.8;
+static const size_t MINIMUM_CAPACITY =  128U;
+static const size_t DEFAULT_CAPACITY = 8192U;
+static const double DEFAULT_LOADFCTR =   0.8;
 
 /* ========================================================================= */
 /* PRIVATE FUNCTIONS                                                         */

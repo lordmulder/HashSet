@@ -201,9 +201,10 @@ static int test_function_2(hash_set_t *const hash_set)
 	random_t random;
 	random_init(&random);
 
-	for (size_t i = 0U, offset = 0U; i < 5U; ++i, offset = 0U)
+	memset(test, 0, sizeof(test));
+
+	for (size_t r = 0U, offset = 0U; r < 8U; ++r, offset = 0U)
 	{
-		memset(test, 0, sizeof(test));
 		for (size_t j = 0U; j < ARRSIZE / 3U; ++j)
 		{
 			size_t rnd;
@@ -212,7 +213,7 @@ static int test_function_2(hash_set_t *const hash_set)
 				rnd = random_next(&random) % ARRSIZE;
 			}
 			while (test[rnd]);
-			test[rnd] = 1U;
+			test[rnd] = UINT8_C(1);
 		}
 		for (size_t j = 0U; j < ARRSIZE; ++j)
 		{
@@ -227,7 +228,7 @@ static int test_function_2(hash_set_t *const hash_set)
 				PRINT_SET_INFO();
 			}
 		}
-		while (hash_set_iterate(hash_set, &offset, &value) == 0)
+		while (!hash_set_iterate(hash_set, &offset, &value))
 		{
 			if (!test[value])
 			{
@@ -246,6 +247,7 @@ static int test_function_2(hash_set_t *const hash_set)
 					return EXIT_FAILURE;
 				}
 				PRINT_SET_INFO();
+				test[j] = UINT8_C(0);
 			}
 		}
 		if (hash_set_size(hash_set) != 0U)
@@ -386,6 +388,8 @@ static int test_function_4(hash_set_t *const hash_set)
 
 int main(void)
 {
+	printf("LibHashSet Test [%s]\n\n", __DATE__);
+
 	hash_set_t *const hash_set = hash_set_create(0U, -1.0);
 	if (!hash_set)
 	{
