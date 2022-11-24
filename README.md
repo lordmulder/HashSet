@@ -95,35 +95,27 @@ Allocates a new hash set instance. The new hash set instance is empty initially.
 ```C
 hash_set_t *hash_set_create(
 	const size_t initial_capacity,
-	const double load_factor,
-	const uint16_t options
+	const double load_factor
 );
 ```
 
 #### Parameters
 
 * `initial_capacity`  
-  The initial capacity of the hash set (number of items). The given value will be rounded to the next power of two. If set to *zero*, the default initial capacity is used.
+  The initial capacity of the hash set (number of items). The given value will be rounded to the next power of two. If this parameter is set to *zero*, the the *default* initial capacity is used.
 
 * `load_factor`  
-  The load factor to be used for the hash set. The given value will be clipped to the **0.1** to **1.0** range. If less than or equal to *zero*, the recommended default load factor is used.
-
-* `options`  
-  Bit mask that can contain zero or more of the following values OR'ed together:
-  
-  - `HASHSET_OPT_FAILFAST`  
-    If an operation attempts to grow the hash set, but the hash set fails to grow (e.g. because of a low-memory situation), causes the operation to fail immediately.  
-    By default, if the set can *not* be grown as desired, the operation may complete successfully anyways. As a result, the performance of the hash set may degrade!
+  The load factor to be used for the hash set. The given value will be clipped to the **0.1** to **1.0** range. If this parameter is less than or equal to *zero*, the recommended *default* load factor is used.
 
 #### Return value
 
 On success, this function returns a pointer to a new hash set instance. On error, a `NULL` pointer is returned.
 
-***Note:*** To avoid a memory leak, the returned pointer must be de-allocated using the [hash_set_destroy()](#hashsetdestroy) function, as soon as the instance is *not* needed anymore!
+***Note:*** To avoid a memory leak, the returned pointer must be de-allocated by the application using the [hash_set_destroy()](#hashsetdestroy) function, as soon as the instance is *not* needed anymore!
 
 ### hash_set_destroy()
 
-De-allocates an existing hash set instance. All items in the hash set are discarded, and all memory occupied by the hash set is released.
+De-allocates an existing hash set instance. All items in the hash set are discarded.
 
 ```C
 void hash_set_destroy(
@@ -134,14 +126,14 @@ void hash_set_destroy(
 #### Parameters
 
 * `instance`  
-  A pointer to the existing hash set instance that is to be destroyed, as returned by the [hash_set_create()](#hashsetcreate) function.  
+  A pointer to the hash set instance that is to be destroyed, as returned by the [hash_set_create()](#hashsetcreate) function.  
   ***Note:*** The given pointer is *invalidated* by this function, and it **must not** be used afterwards!
 
 ### hash_set_insert()
 
 Tries to insert the given value into the hash set. The operation fails, if the set already contains the given value.
 
-***Note:*** If the value is actually inserted, then is *may* cause the hash set to grow.
+***Note:*** If the value is actually inserted, then the hash set *may* need to grow.
 
 ```C
 errno_t hash_set_insert(
@@ -149,10 +141,11 @@ errno_t hash_set_insert(
 	const uint64_t value
 );
 ```
+
 #### Parameters
 
 * `instance`  
-  A pointer to the hash set instance to be used by this operation, as returned by the [hash_set_create()](#hashsetcreate) function.
+  A pointer to the hash set instance to be modified, as returned by the [hash_set_create()](#hashsetcreate) function.
 
 * `value`  
   The value (key) to be inserted into the hash set. It can be *any* value in the `0U` to `UINT64_MAX` range.
@@ -165,15 +158,19 @@ On success, this function returns *zero*. On error, the appropriate error code i
   An invalid argument was given, e.g. `instance` was set to `NULL`.
 
 * `EEXIST`  
-  The given value (key) was *not* inserted into the hash set, because the hash set already contained that value.
+  The given value (key) was *not* inserted into the hash set (again), because that value was already present.
 
 * `ENOMEM`  
   The value could *not* be inserted, because the required amount of memory could *not* be allocated.
 
 * `EFAULT`  
-  Something else went wrong. This usually indicates an internal error (inconsistency) and is *not* supposed to happen.
+  Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
 
 ### hash_set_remove()
+
+Tries to remove the given value from the hash set. The operation fails, if the set does *not* contain the given value.
+
+***Note:*** If the value is actually removed, then the hash set *may* shrink.
 
 ```C
 errno_t hash_set_remove(
@@ -182,23 +179,57 @@ errno_t hash_set_remove(
 );
 ```
 
+#### Parameters
+
+* `instance`  
+  A pointer to the hash set instance to be modified, as returned by the [hash_set_create()](#hashsetcreate) function.
+
+* `value`  
+  The value (key) to be removed from the hash set. It can be *any* value in the `0U` to `UINT64_MAX` range.
+
+#### Return value
+
+On success, this function returns *zero*. On error, the appropriate error code is returned. Possible error codes include:
+
+* `EINVAL`  
+  An invalid argument was given, e.g. `instance` was set to `NULL`.
+
+* `ENOENT`  
+  The given value (key) could *not* be removed from the hash set, because *no* such value was present.
+
+* `EFAULT`  
+  Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
+
 ### hash_set_clear()
+
+Discards *all* items from the hash set at once.
 
 ```C
 errno_t hash_set_clear(
 	hash_set_t *const instance
 );
 ```
+#### Parameters
 
-### hash_set_shrink()
+* `instance`  
+  A pointer to the hash set instance to be modified, as returned by the [hash_set_create()](#hashsetcreate) function.
 
-```C
-errno_t hash_set_shrink(
-	hash_set_t *const instance
-);
-```
+#### Return value
+
+On success, this function returns *zero*. On error, the appropriate error code is returned. Possible error codes include:
+
+* `EINVAL`  
+  An invalid argument was given, e.g. `instance` was set to `NULL`.
+
+* `EAGAIN`  
+  The hash set was *not* cleared, because it already was empty. Please try again later!
+
+* `EFAULT`  
+  Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
 
 ### hash_set_contains()
+
+Tests whether the hash set contains a specific value. The operation fails, if the set does *not* contain the given value.
 
 ```C
 errno_t hash_set_contains(
@@ -206,6 +237,27 @@ errno_t hash_set_contains(
 	const uint64_t value
 );
 ```
+
+#### Parameters
+
+* `instance`  
+  A pointer to the hash set instance to be examined, as returned by the [hash_set_create()](#hashsetcreate) function.
+
+* `value`  
+  The value (key) to be searched in the hash set. It can be *any* value in the `0U` to `UINT64_MAX` range.
+
+#### Return value
+
+On success, this function returns *zero*. On error, the appropriate error code is returned. Possible error codes include:
+
+* `EINVAL`  
+  An invalid argument was given, e.g. `instance` was set to `NULL`.
+
+* `ENOENT`  
+  The hash set does *not* contain the specified value (key).
+
+* `EFAULT`  
+  Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
 
 ### hash_set_iterate()
 
