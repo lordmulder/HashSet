@@ -229,7 +229,7 @@ On success, this function returns *zero*. On error, the appropriate error code i
 
 ### hash_set_contains()
 
-Tests whether the hash set contains a specific value. The operation fails, if the set does *not* contain the given value.
+Tests whether the hash set contains a value. The operation fails, if the set does *not* contain the given value.
 
 ```C
 errno_t hash_set_contains(

@@ -190,7 +190,82 @@ static int test_function_1(hash_set_t *const hash_set)
 /* TEST #2                                                                   */
 /* ========================================================================= */
 
+#define ARRSIZE 14867U
+
 static int test_function_2(hash_set_t *const hash_set)
+{
+	size_t capacity, valid, deleted, limit;
+	uint64_t value;
+	uint8_t test[ARRSIZE];
+
+	random_t random;
+	random_init(&random);
+
+	for (size_t i = 0U, offset = 0U; i < 5U; ++i, offset = 0U)
+	{
+		memset(test, 0, sizeof(test));
+		for (size_t j = 0U; j < ARRSIZE / 3U; ++j)
+		{
+			size_t rnd;
+			do
+			{
+				rnd = random_next(&random) % ARRSIZE;
+			}
+			while (test[rnd]);
+			test[rnd] = 1U;
+		}
+		for (size_t j = 0U; j < ARRSIZE; ++j)
+		{
+			if (test[j])
+			{
+				const errno_t error = hash_set_insert(hash_set, j);
+				if (error)
+				{
+					printf("Insert operation has failed! (error: %d)\n", error);
+					return EXIT_FAILURE;
+				}
+				PRINT_SET_INFO();
+			}
+		}
+		while (hash_set_iterate(hash_set, &offset, &value) == 0)
+		{
+			if (!test[value])
+			{
+				puts("Error has been detected!");
+				return EXIT_FAILURE;
+			}
+		}
+		for (size_t j = 0U; j < ARRSIZE; ++j)
+		{
+			if (test[j])
+			{
+				const errno_t error = hash_set_remove(hash_set, j);
+				if (error)
+				{
+					printf("Remove operation has failed! (error: %d)\n", error);
+					return EXIT_FAILURE;
+				}
+				PRINT_SET_INFO();
+			}
+		}
+		if (hash_set_size(hash_set) != 0U)
+		{
+			puts("Invalid size!");
+			return EXIT_FAILURE;
+		}
+	}
+
+	PRINT_SET_INFO();
+	puts("--------");
+
+	return EXIT_SUCCESS;
+}
+
+/* ========================================================================= */
+/* TEST #3                                                                   */
+/* ========================================================================= */
+
+static int test_function_3(hash_set_t *const hash_set)
 {
 	size_t capacity, valid, deleted, limit;
 	uint8_t spinner = 0U;
@@ -243,10 +318,10 @@ static int test_function_2(hash_set_t *const hash_set)
 }
 
 /* ========================================================================= */
-/* TEST #3                                                                   */
+/* TEST #4                                                                   */
 /* ========================================================================= */
 
-static int test_function_3(hash_set_t *const hash_set)
+static int test_function_4(hash_set_t *const hash_set)
 {
 	size_t capacity, valid, deleted, limit;
 	uint8_t spinner = 0U;
@@ -327,8 +402,13 @@ int main(void)
 	{
 		goto failure;
 	}
-	
+
 	if (test_function_3(hash_set) != EXIT_SUCCESS)
+	{
+		goto failure;
+	}
+
+	if (test_function_4(hash_set) != EXIT_SUCCESS)
 	{
 		goto failure;
 	}

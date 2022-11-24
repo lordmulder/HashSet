@@ -22,7 +22,7 @@ struct _hash_set;
 typedef struct _hash_set hash_set_t;
 
 hash_set_t *hash_set_create(const size_t initial_capacity, const double load_factor);
-void hash_set_destroy(hash_set_t *instance);
+void hash_set_destroy(hash_set_t *const instance);
 
 errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value);
 errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value);

@@ -43,7 +43,7 @@ struct _hash_set
 
 static const size_t MINIMUM_CAPACITY =   128U;
 static const size_t DEFAULT_CAPACITY = 16384U;
-static const double DEFAULT_LOADFCTR = 0.8125;
+static const double DEFAULT_LOADFCTR =    0.8;
 
 /* ========================================================================= */
 /* PRIVATE FUNCTIONS                                                         */
