@@ -80,7 +80,7 @@ static int test_function_1(hash_set_t *const hash_set)
 {
 	size_t capacity, valid, deleted, limit;
 
-	for (size_t r = 0U; r < 3U; ++r)
+	for (size_t r = 0U; r < 5U; ++r)
 	{
 		for (uint64_t i = 0; i < MAXIMUM; ++i)
 		{
@@ -235,12 +235,6 @@ static int test_function_2(hash_set_t *const hash_set)
 		puts("Clear operation has failed!");
 		return EXIT_FAILURE;
 	}
-
-	if (hash_set_shrink(hash_set))
-	{
-		puts("Shrink operation has failed!");
-		return EXIT_FAILURE;
-	}
 	
 	PRINT_SET_INFO();
 	puts("--------");
@@ -278,7 +272,34 @@ static int test_function_3(hash_set_t *const hash_set)
 		}
 	}
 
+	for (uint64_t value = 0U; value < ((uint64_t)INT32_MAX); ++value)
+	{
+		const errno_t error = hash_set_remove(hash_set, value);
+		if (error)
+		{
+			PRINT_SET_INFO();
+			printf("Remove operation has failed! (error: %d)\n", error);
+			return EXIT_FAILURE;
+		}
+		if (!(++spinner & 0x7F))
+		{
+			const clock_t clock_now = clock();
+			if ((clock_now < last_update) || (clock_now >= last_update + CLOCKS_PER_SEC))
+			{
+				PRINT_SET_INFO();
+				last_update = clock_now;
+			}
+		}
+	}
+
 	PRINT_SET_INFO();
+	
+	if (hash_set_size(hash_set) != 0U)
+	{
+		puts("Invalid size!");
+		return EXIT_FAILURE;
+	}
+
 	puts("--------");
 
 	return EXIT_SUCCESS;
@@ -290,7 +311,7 @@ static int test_function_3(hash_set_t *const hash_set)
 
 int main(void)
 {
-	hash_set_t *const hash_set = hash_set_create(0U, -1.0, 0U /*HASHSET_OPT_FAILFAST*/);
+	hash_set_t *const hash_set = hash_set_create(0U, -1.0);
 	if (!hash_set)
 	{
 		puts("Allocation has failed!");

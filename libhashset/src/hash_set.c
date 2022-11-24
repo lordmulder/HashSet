@@ -8,8 +8,10 @@
 /* CRT */
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 #include <limits.h>
 #include <float.h>
+#include <assert.h>
 
 typedef int bool_t;
 #define TRUE 1
@@ -35,7 +37,6 @@ struct _hash_set_data
 struct _hash_set
 {
 	double load_factor;
-	uint16_t options;
 	size_t valid, deleted, limit;
 	struct _hash_set_data data;
 };
@@ -51,6 +52,8 @@ static const double DEFAULT_LOADFCTR = 0.8125;
 #define IS_VALID(X,Y) (get_flag((X).used, (Y)) && (!get_flag((X).deleted, (Y))))
 
 #define BOUND(MIN,VAL,MAX) (((VAL) < (MIN)) ? (MIN) : (((VAL) > (MAX)) ? (MAX) : (VAL)))
+
+#define SAFE_SET(X,Y) do { if((X)) { *(X) = (Y); } } while(0)
 
 #define SAFE_FREE(X) do { if ((X)) { free((X)); (X) = NULL; } } while(0)
 
@@ -69,9 +72,10 @@ static FORCE_INLINE size_t div_ceil(const size_t value, const size_t divisor)
 	return (value / divisor) + ((value % divisor != 0U) ? 1U : 0U);
 }
 
-static FORCE_INLINE size_t round_sz(double d)
+static FORCE_INLINE size_t round_sz(const double d)
 {
-	return (d >= 0.0) ? ((d + 0.5 >= ((double)SIZE_MAX)) ? SIZE_MAX : ((size_t)(d + 0.5))) : 0U;
+	
+	return ((!isnan(d)) && (d >= 0.0)) ? ((d + 0.5 >= ((double)SIZE_MAX)) ? SIZE_MAX : ((size_t)(d + 0.5))) : 0U;
 }
 
 static FORCE_INLINE size_t safe_add(const size_t a, const size_t b)
@@ -135,7 +139,7 @@ static INLINE void zero_memory(void* const addr, const size_t count, const size_
 static INLINE bool_t alloc_data(struct _hash_set_data *const data, const size_t capacity)
 {
 	zero_memory(data, 1U, sizeof(struct _hash_set_data));
-	
+
 	data->values = (uint64_t*) calloc(capacity, sizeof(uint64_t));
 	if (!data->values)
 	{
@@ -149,7 +153,7 @@ static INLINE bool_t alloc_data(struct _hash_set_data *const data, const size_t 
 		return FALSE;
 	}
 
-	data->deleted = (uint8_t*) calloc(div_ceil(capacity,  8U), sizeof(uint8_t));
+	data->deleted = (uint8_t*) calloc(div_ceil(capacity, 8U), sizeof(uint8_t));
 	if (!data->deleted)
 	{
 		SAFE_FREE(data->used);
@@ -161,7 +165,7 @@ static INLINE bool_t alloc_data(struct _hash_set_data *const data, const size_t 
 	return TRUE;
 }
 
-static INLINE void free_data(struct _hash_set_data *const data)
+static INLINE void free_data(struct _hash_set_data* const data)
 {
 	if (data)
 	{
@@ -176,12 +180,12 @@ static INLINE void free_data(struct _hash_set_data *const data)
 /* Flags                                             */
 /* ------------------------------------------------- */
 
-static INLINE bool_t get_flag(const uint8_t* const flags, const size_t index)
+static INLINE bool_t get_flag(const uint8_t *const flags, const size_t index)
 {
-	return (flags[index / 8U] >> (index % 8U)) & 1U;
+	return (flags[index / 8U] >> (index % 8U)) & UINT8_C(1);
 }
 
-static INLINE void set_flag(uint8_t* const flags, const size_t index)
+static INLINE void set_flag(uint8_t *const flags, const size_t index)
 {
 	flags[index / 8U] |= UINT8_C(1) << (index % 8U);
 }
@@ -197,54 +201,66 @@ static INLINE void clear_flag(uint8_t* const flags, const size_t index)
 
 #define INDEX(X) ((size_t)((X) % data->capacity))
 
-static INLINE bool_t find_slot(const struct _hash_set_data *const data, const uint64_t value, size_t *const index_out)
+static INLINE bool_t find_slot(const struct _hash_set_data *const data, const uint64_t value, size_t *const index_out, bool_t *const reused_out)
 {
 	uint64_t loop = 0U;
+	bool_t is_saved = FALSE;
 	size_t index;
-	bool_t index_saved = FALSE;
 
 	for (index = INDEX(hash_compute(loop, value)); get_flag(data->used, index); index = INDEX(hash_compute(++loop, value)))
 	{
-		if (!get_flag(data->deleted, index))
+		if (get_flag(data->deleted, index))
+		{
+			if (!is_saved)
+			{
+				SAFE_SET(index_out, index);
+				SAFE_SET(reused_out, TRUE);
+				is_saved = TRUE;
+			}
+		}
+		else
 		{
 			if (data->values[index] == value)
 			{
-				if (index_out)
-				{
-					*index_out = index;
-				}
+				SAFE_SET(index_out, index);
+				SAFE_SET(reused_out, FALSE);
 				return TRUE;
 			}
 		}
-		else if ((!index_saved) && index_out)
-		{
-			*index_out = index;
-			index_saved = TRUE;
-		}
 	}
 
-	if ((!index_saved) && index_out)
+	if (!is_saved)
 	{
-		*index_out = index;
+		SAFE_SET(index_out, index);
+		SAFE_SET(reused_out, FALSE);
 	}
 
 	return FALSE;
 }
 
-static INLINE bool_t store_value(struct _hash_set_data *const data, const size_t index, const uint64_t value)
+static INLINE void put_value(struct _hash_set_data *const data, const size_t index, const uint64_t value, const bool_t reusing)
 {
 	data->values[index] = value;
-
-	if (get_flag(data->used, index))
+	if (reusing)
 	{
+		assert(get_flag(data->used, index));
 		clear_flag(data->deleted, index);
-		return FALSE;
 	}
 	else
 	{
+		assert(!get_flag(data->deleted, index));
 		set_flag(data->used, index);
-		return TRUE;
 	}
+}
+
+static size_t INLINE compute_limit(const size_t capacity, const double load_factor)
+{
+	size_t limit = round_sz(capacity * load_factor);
+	while (capacity && (limit >= capacity))
+	{
+		limit = safe_decr(limit);
+	}
+	return limit;
 }
 
 static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_capacity)
@@ -267,22 +283,18 @@ static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_c
 		if (IS_VALID(instance->data, k))
 		{
 			const uint64_t value = instance->data.values[k];
-			if (find_slot(&temp, value, &index))
+			if (find_slot(&temp, value, &index, NULL))
 			{
 				free_data(&temp);
-				return EFAULT; /*should never happen!*/
+				return EFAULT; /*this should never happen!*/
 			}
-			if (!store_value(&temp, index, value))
-			{
-				free_data(&temp);
-				return EFAULT; /*should never happen!*/
-			}
+			put_value(&temp, index, value, FALSE);
 		}
 	}
 
 	free_data(&instance->data);
 	instance->data = temp;
-	instance->limit = round_sz(instance->data.capacity * instance->load_factor);
+	instance->limit = compute_limit(instance->data.capacity, instance->load_factor);
 	instance->deleted = 0U;
 
 	return 0;
@@ -292,7 +304,7 @@ static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_c
 /* PUBLIC FUNCTIONS                                                          */
 /* ========================================================================= */
 
-hash_set_t *hash_set_create(const size_t initial_capacity, const double load_factor, const uint16_t options)
+hash_set_t *hash_set_create(const size_t initial_capacity, const double load_factor)
 {
 	hash_set_t *instance = (hash_set_t*) calloc(1U, sizeof(hash_set_t));
 	if (!instance)
@@ -307,8 +319,7 @@ hash_set_t *hash_set_create(const size_t initial_capacity, const double load_fac
 	}
 
 	instance->load_factor = (load_factor > DBL_EPSILON) ? BOUND(0.125, load_factor, 1.0) : DEFAULT_LOADFCTR;
-	instance->options = options;
-	instance->limit = round_sz(instance->data.capacity * instance->load_factor);
+	instance->limit = compute_limit(instance->data.capacity, instance->load_factor);
 
 	return instance;
 }
@@ -326,52 +337,37 @@ void hash_set_destroy(hash_set_t *instance)
 errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 {
 	size_t index;
+	bool_t slot_reused;
 
 	if ((!instance) || (!instance->data.values))
 	{
 		return EINVAL;
 	}
 
-	if (find_slot(&instance->data, value, &index))
+	if (find_slot(&instance->data, value, &index, &slot_reused))
 	{
 		return EEXIST;
 	}
 
-	if (!store_value(&instance->data, index, value))
+	if ((!slot_reused) && (safe_add(instance->valid, instance->deleted) >= instance->limit))
 	{
-		instance->deleted = safe_decr(instance->deleted);
+		const errno_t error = rebuild_set(instance, safe_mult(instance->data.capacity, 2U));
+		if (error)
+		{
+			return error;
+		}
+		else if (find_slot(&instance->data, value, &index, &slot_reused))
+		{
+			return EFAULT;
+		}
 	}
 
-	instance->valid = safe_incr(instance->valid);
+	put_value(&instance->data, index, value, slot_reused);
 
-	while ((safe_add(instance->valid, instance->deleted) > instance->limit) || (instance->valid >= instance->data.capacity))
+	instance->valid = safe_incr(instance->valid);
+	if (slot_reused)
 	{
-		if (instance->data.capacity == SIZE_MAX)
-		{
-			if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->valid >= instance->data.capacity))
-			{
-				return ENOMEM; /*malloc has failed!*/
-			}
-		}
-		else
-		{
-			const errno_t error = rebuild_set(instance, safe_mult(instance->data.capacity, 2U));
-			if (error)
-			{
-				if (error == ENOMEM)
-				{
-					if ((instance->options & HASHSET_OPT_FAILFAST) || (instance->valid >= instance->data.capacity))
-					{
-						return ENOMEM; /*malloc has failed!*/
-					}
-					instance->limit = SIZE_MAX;
-				}
-				else
-				{
-					return error;
-				}
-			}
-		}
+		instance->deleted = safe_decr(instance->deleted);
 	}
 
 	return 0;
@@ -384,7 +380,7 @@ errno_t hash_set_contains(const hash_set_t *const instance, const uint64_t value
 		return EINVAL;
 	}
 
-	return find_slot(&instance->data, value, NULL) ? 0 : ENOENT;
+	return (instance->valid && find_slot(&instance->data, value, NULL, NULL)) ? 0 : ENOENT;
 }
 
 errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value)
@@ -396,7 +392,7 @@ errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value)
 		return EINVAL;
 	}
 
-	if (!find_slot(&instance->data, value, &index))
+	if ((!instance->valid) || (!find_slot(&instance->data, value, &index, NULL)))
 	{
 		return ENOENT;
 	}
@@ -405,9 +401,19 @@ errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value)
 	instance->deleted = safe_incr(instance->deleted);
 	instance->valid = safe_decr(instance->valid);
 
-	if (instance->valid == 0U)
+	if (!instance->valid)
 	{
-		hash_set_clear(instance); /*optimization*/
+		return hash_set_clear(instance);
+	}
+
+	if (instance->deleted > (instance->limit / 2U))
+	{
+		const size_t new_capacity = next_pow2(round_sz(safe_incr(instance->valid) / instance->load_factor));
+		const errno_t error =  rebuild_set(instance, (instance->data.capacity > new_capacity) ? new_capacity : instance->data.capacity);
+		if (error && (error != ENOMEM))
+		{
+			return error;
+		}
 	}
 
 	return 0;
@@ -420,35 +426,26 @@ errno_t hash_set_clear(hash_set_t *const instance)
 		return EINVAL;
 	}
 
-	if ((instance->valid == 0U) && (instance->deleted == 0U))
+	if ((!instance->valid) && (!instance->deleted))
 	{
 		return EAGAIN;
 	}
 
+	instance->valid = instance->deleted = 0U;
+
 	zero_memory(instance->data.used,    div_ceil(instance->data.capacity, 8U), sizeof(uint8_t));
 	zero_memory(instance->data.deleted, div_ceil(instance->data.capacity, 8U), sizeof(uint8_t));
 
-	instance->valid = instance->deleted = 0U;
-	return 0;
-}
-
-errno_t hash_set_shrink(hash_set_t *const instance)
-{
-	if ((!instance) || (!instance->data.values))
-	{
-		return EINVAL;
-	}
-
 	if (instance->data.capacity > MINIMUM_CAPACITY)
 	{
-		const size_t target_capacity = next_pow2(round_sz(safe_add(instance->valid, MINIMUM_CAPACITY) / instance->load_factor));
-		if ((instance->data.capacity > target_capacity) || (instance->deleted > 0U))
+		const errno_t error = rebuild_set(instance, MINIMUM_CAPACITY);
+		if (error && (error != ENOMEM))
 		{
-			return rebuild_set(instance, target_capacity);
+			return error;
 		}
 	}
 
-	return EAGAIN;
+	return 0;
 }
 
 errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset, uint64_t *const value)

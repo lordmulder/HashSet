@@ -18,18 +18,15 @@ typedef int errno_t;
 #define _ERRNO_T_DEFINED 1
 #endif
 
-#define HASHSET_OPT_FAILFAST UINT16_C(0x1)
-
 struct _hash_set;
 typedef struct _hash_set hash_set_t;
 
-hash_set_t *hash_set_create(const size_t initial_capacity, const double load_factor, const uint16_t options);
+hash_set_t *hash_set_create(const size_t initial_capacity, const double load_factor);
 void hash_set_destroy(hash_set_t *instance);
 
 errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value);
 errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value);
 errno_t hash_set_clear(hash_set_t *const instance);
-errno_t hash_set_shrink(hash_set_t *const instance);
 
 errno_t hash_set_contains(const hash_set_t *const instance, const uint64_t value);
 errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset, uint64_t *const value);
