@@ -61,11 +61,11 @@ static INLINE uint64_t random_next(random_t *const rnd)
 	return rnd->buffer[rnd->offset++];
 }
 
-#define PRINT_SET_INFO() do \
+#define PRINT_SET_INFO(X) do \
 {\
 	if (!hash_set_info(hash_set, &capacity, &valid, &deleted, &limit)) \
 	{ \
-		printf("capacity: %010zu, valid: %010zu, deleted: %010zu, limit: %010zu\n", capacity, valid, deleted, limit); \
+		printf("[#%d] capacity: %010zu, valid: %010zu, deleted: %010zu, limit: %010zu\n", (X), capacity, valid, deleted, limit); \
 	} \
 } \
 while(0)
@@ -93,7 +93,7 @@ static int test_function_1(hash_set_t *const hash_set)
 					return EXIT_FAILURE;
 				}
 			}
-			PRINT_SET_INFO();
+			PRINT_SET_INFO(1);
 		}
 
 		if (hash_set_size(hash_set) != MAXIMUM - 4U)
@@ -142,7 +142,7 @@ static int test_function_1(hash_set_t *const hash_set)
 					return EXIT_FAILURE;
 				}
 			}
-			PRINT_SET_INFO();
+			PRINT_SET_INFO(1);
 		}
 
 		if (hash_set_size(hash_set) != 1U)
@@ -179,8 +179,8 @@ static int test_function_1(hash_set_t *const hash_set)
 			return EXIT_FAILURE;
 		}
 
-		PRINT_SET_INFO();
-		puts("--------");
+		PRINT_SET_INFO(1);
+		puts("---------");
 	}
 
 	return EXIT_SUCCESS;
@@ -225,7 +225,7 @@ static int test_function_2(hash_set_t *const hash_set)
 					printf("Insert operation has failed! (error: %d)\n", error);
 					return EXIT_FAILURE;
 				}
-				PRINT_SET_INFO();
+				PRINT_SET_INFO(2);
 			}
 		}
 		while (!hash_set_iterate(hash_set, &offset, &value))
@@ -246,7 +246,7 @@ static int test_function_2(hash_set_t *const hash_set)
 					printf("Remove operation has failed! (error: %d)\n", error);
 					return EXIT_FAILURE;
 				}
-				PRINT_SET_INFO();
+				PRINT_SET_INFO(2);
 				test[j] = UINT8_C(0);
 			}
 		}
@@ -257,8 +257,8 @@ static int test_function_2(hash_set_t *const hash_set)
 		}
 	}
 
-	PRINT_SET_INFO();
-	puts("--------");
+	PRINT_SET_INFO(2);
+	puts("---------");
 
 	return EXIT_SUCCESS;
 }
@@ -289,7 +289,7 @@ static int test_function_3(hash_set_t *const hash_set)
 			}
 			else
 			{
-				PRINT_SET_INFO();
+				PRINT_SET_INFO(3);
 				printf("Collision detected! [%016llX]\n", rnd);
 				break;
 			}
@@ -299,13 +299,13 @@ static int test_function_3(hash_set_t *const hash_set)
 			const clock_t clock_now = clock();
 			if ((clock_now < last_update) || (clock_now >= last_update + CLOCKS_PER_SEC))
 			{
-				PRINT_SET_INFO();
+				PRINT_SET_INFO(3);
 				last_update = clock_now;
 			}
 		}
 	}
 
-	PRINT_SET_INFO();
+	PRINT_SET_INFO(3);
 
 	if (hash_set_clear(hash_set))
 	{
@@ -313,8 +313,8 @@ static int test_function_3(hash_set_t *const hash_set)
 		return EXIT_FAILURE;
 	}
 	
-	PRINT_SET_INFO();
-	puts("--------");
+	PRINT_SET_INFO(3);
+	puts("---------");
 
 	return EXIT_SUCCESS;
 }
@@ -334,7 +334,7 @@ static int test_function_4(hash_set_t *const hash_set)
 		const errno_t error = hash_set_insert(hash_set, value);
 		if (error)
 		{
-			PRINT_SET_INFO();
+			PRINT_SET_INFO(4);
 			printf("Insert operation has failed! (error: %d)\n", error);
 			return EXIT_FAILURE;
 		}
@@ -343,7 +343,7 @@ static int test_function_4(hash_set_t *const hash_set)
 			const clock_t clock_now = clock();
 			if ((clock_now < last_update) || (clock_now >= last_update + CLOCKS_PER_SEC))
 			{
-				PRINT_SET_INFO();
+				PRINT_SET_INFO(4);
 				last_update = clock_now;
 			}
 		}
@@ -354,7 +354,7 @@ static int test_function_4(hash_set_t *const hash_set)
 		const errno_t error = hash_set_remove(hash_set, value);
 		if (error)
 		{
-			PRINT_SET_INFO();
+			PRINT_SET_INFO(4);
 			printf("Remove operation has failed! (error: %d)\n", error);
 			return EXIT_FAILURE;
 		}
@@ -363,21 +363,20 @@ static int test_function_4(hash_set_t *const hash_set)
 			const clock_t clock_now = clock();
 			if ((clock_now < last_update) || (clock_now >= last_update + CLOCKS_PER_SEC))
 			{
-				PRINT_SET_INFO();
+				PRINT_SET_INFO(4);
 				last_update = clock_now;
 			}
 		}
 	}
 
-	PRINT_SET_INFO();
-	
 	if (hash_set_size(hash_set) != 0U)
 	{
 		puts("Invalid size!");
 		return EXIT_FAILURE;
 	}
 
-	puts("--------");
+	PRINT_SET_INFO(4);
+	puts("---------");
 
 	return EXIT_SUCCESS;
 }
