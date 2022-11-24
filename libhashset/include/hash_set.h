@@ -3,18 +3,18 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
-#ifndef _LIBHASHSET_INCLUDED
-#define _LIBHASHSET_INCLUDED
+#ifndef _INC_HASHSET_H
+#define _INC_HASHSET_H
 
 #include <stdlib.h>
 #include <stdint.h>
 
-#if defined(_MSC_VER) && defined(_DLL)
-#  ifdef _LIBHASHSET_EXPORTS
+#ifdef HASHSET_DLL
+#  ifdef _HASHSET_EXPORTS
 #    define HASHSET_API extern __declspec(dllexport)
 #  else
 #    define HASHSET_API extern __declspec(dllimport)
-# endif
+#  endif
 #else
 #  define HASHSET_API extern
 #endif
