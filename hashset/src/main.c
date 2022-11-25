@@ -6,6 +6,7 @@
 #include <hash_set.h>
 
 #include <stdio.h>
+#include <inttypes.h>
 #include <time.h>
 #include <string.h>
 #include <errno.h>
@@ -293,7 +294,7 @@ static int test_function_3(hash_set_t *const hash_set)
 				else
 				{
 					PRINT_SET_INFO(3);
-					printf("Collision detected! [%016llX]\n", rnd);
+					printf("Collision detected! [%016" PRIx64 "]\n", rnd);
 					break;
 				}
 			}
