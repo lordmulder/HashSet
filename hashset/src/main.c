@@ -276,43 +276,46 @@ static int test_function_3(hash_set_t *const hash_set)
 	random_t random;
 	random_init(&random);
 
-	for (;;)
+	for (size_t r = 0U; r < 3U; ++r)
 	{
-		const uint64_t rnd = random_next(&random) & UINT64_C(0x3FFFFFFFFFFFFFF);
-		const errno_t error = hash_set_insert(hash_set, rnd);
-		if (error)
+		for (;;)
 		{
-			if (error != EEXIST)
+			const uint64_t rnd = random_next(&random) & UINT64_C(0x3FFFFFFFFFFFFFF);
+			const errno_t error = hash_set_insert(hash_set, rnd);
+			if (error)
 			{
-				printf("Insert operation has failed! (error: %d)\n", error);
-				return EXIT_FAILURE;
+				if (error != EEXIST)
+				{
+					printf("Insert operation has failed! (error: %d)\n", error);
+					return EXIT_FAILURE;
+				}
+				else
+				{
+					PRINT_SET_INFO(3);
+					printf("Collision detected! [%016llX]\n", rnd);
+					break;
+				}
 			}
-			else
+			if (!(++spinner & 0x7F))
 			{
-				PRINT_SET_INFO(3);
-				printf("Collision detected! [%016llX]\n", rnd);
-				break;
+				const clock_t clock_now = clock();
+				if ((clock_now < last_update) || (clock_now >= last_update + CLOCKS_PER_SEC))
+				{
+					PRINT_SET_INFO(3);
+					last_update = clock_now;
+				}
 			}
 		}
-		if (!(++spinner & 0x7F))
+
+		PRINT_SET_INFO(3);
+
+		if (hash_set_clear(hash_set))
 		{
-			const clock_t clock_now = clock();
-			if ((clock_now < last_update) || (clock_now >= last_update + CLOCKS_PER_SEC))
-			{
-				PRINT_SET_INFO(3);
-				last_update = clock_now;
-			}
+			puts("Clear operation has failed!");
+			return EXIT_FAILURE;
 		}
 	}
 
-	PRINT_SET_INFO(3);
-
-	if (hash_set_clear(hash_set))
-	{
-		puts("Clear operation has failed!");
-		return EXIT_FAILURE;
-	}
-	
 	PRINT_SET_INFO(3);
 	puts("---------");
 
@@ -323,13 +326,15 @@ static int test_function_3(hash_set_t *const hash_set)
 /* TEST #4                                                                   */
 /* ========================================================================= */
 
+#define LIMIT (UINT64_MAX >> 2)
+
 static int test_function_4(hash_set_t *const hash_set)
 {
 	size_t capacity, valid, deleted, limit;
 	uint8_t spinner = 0U;
 	clock_t last_update = clock();
 
-	for (uint64_t value = 0U; value < ((uint64_t)INT32_MAX); ++value)
+	for (uint64_t value = 0U; value < LIMIT; ++value)
 	{
 		const errno_t error = hash_set_insert(hash_set, value);
 		if (error)
@@ -349,7 +354,7 @@ static int test_function_4(hash_set_t *const hash_set)
 		}
 	}
 
-	for (uint64_t value = 0U; value < ((uint64_t)INT32_MAX); ++value)
+	for (uint64_t value = 0U; value < LIMIT; ++value)
 	{
 		const errno_t error = hash_set_remove(hash_set, value);
 		if (error)

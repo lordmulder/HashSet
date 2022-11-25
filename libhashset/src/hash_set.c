@@ -68,7 +68,7 @@ static FORCE_INLINE size_t div_ceil(const size_t value, const size_t divisor)
 
 static FORCE_INLINE size_t round_sz(const double d)
 {
-	
+
 	return ((!isnan(d)) && (d >= 0.0)) ? ((d + 0.5 >= ((double)SIZE_MAX)) ? SIZE_MAX : ((size_t)(d + 0.5))) : 0U;
 }
 
@@ -136,7 +136,7 @@ static INLINE uint64_t hash_compute(const uint64_t i, const uint64_t value)
 /* Allocation                                        */
 /* ------------------------------------------------- */
 
-static INLINE void zero_memory(void* const addr, const size_t count, const size_t size)
+static INLINE void zero_memory(void *const addr, const size_t count, const size_t size)
 {
 	memset(addr, 0, safe_mult(count, size));
 }
@@ -170,7 +170,7 @@ static INLINE bool_t alloc_data(struct _hash_set_data *const data, const size_t 
 	return TRUE;
 }
 
-static INLINE void free_data(struct _hash_set_data* const data)
+static INLINE void free_data(struct _hash_set_data *const data)
 {
 	if (data)
 	{
@@ -195,7 +195,7 @@ static INLINE void set_flag(uint8_t *const flags, const size_t index)
 	flags[index / 8U] |= UINT8_C(1) << (index % 8U);
 }
 
-static INLINE void clear_flag(uint8_t* const flags, const size_t index)
+static INLINE void clear_flag(uint8_t *const flags, const size_t index)
 {
 	flags[index / 8U] &= ~(UINT8_C(1) << (index % 8U));
 }
@@ -261,10 +261,12 @@ static INLINE void put_value(struct _hash_set_data *const data, const size_t ind
 static size_t INLINE compute_limit(const size_t capacity, const double load_factor)
 {
 	size_t limit = round_sz(capacity * load_factor);
+
 	while (capacity && (limit >= capacity))
 	{
 		limit = safe_decr(limit);
 	}
+
 	return limit;
 }
 
