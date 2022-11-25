@@ -12,7 +12,7 @@ if not exist "%MSVC_PATH%\Auxiliary\Build\vcvarsall.bat" (
 	goto:eof
 )
 
-for %%p in (x86,x64) do (
+for %%p in (x86,x64,ARM64) do (
 	call "%MSVC_PATH%\Auxiliary\Build\vcvarsall.bat" %%p
 	for %%c in (Static,Shared,Debug) do (
 		echo.
