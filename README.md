@@ -89,6 +89,28 @@ A `struct` that represents a hash set instance. Instances can be allocated and d
 typedef struct _hash_set hash_set_t;
 ```
 
+Globals
+-------
+
+### Version information
+
+The *major*, *minor* and *patch* version of the LibHashSet library:
+
+```C
+extern const uint16_t HASHSET_VERSION_MAJOR;
+extern const uint16_t HASHSET_VERSION_MINOR;
+extern const uint16_t HASHSET_VERSION_PATCH;
+```
+
+### Build information
+
+The build *date* and *time* of the LibHashSet library:
+
+```C
+extern const char *const HASHSET_BUILD_DATE;
+extern const char *const HASHSET_BUILD_TIME;
+```
+
 Functions
 ---------
 
