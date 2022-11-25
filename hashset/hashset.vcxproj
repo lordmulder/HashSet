@@ -109,33 +109,39 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)\bin\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>hashset-test</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)\bin\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>hashset-test</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shared|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)\bin\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>hashset-test</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)\bin\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>hashset-test</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)\bin\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>hashset-test</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shared|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)\bin\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>hashset-test</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -151,6 +157,7 @@
       <LargeAddressAware>true</LargeAddressAware>
       <MinimumRequiredVersion>5.1</MinimumRequiredVersion>
     </Link>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static|Win32'">
     <ClCompile>
@@ -182,6 +189,7 @@
       <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
       <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Shared|Win32'">
     <ClCompile>
@@ -213,6 +221,13 @@
       <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
       <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent />
+    <PostBuildEvent>
+      <Command>copy /B /Y /N "$(SolutionDir)lib\$(PlatformToolset)\$(Platform)\$(Configuration)\libhashset-1.dll" "$(TargetDir)libhashset-1.dll"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>cp "$(SolutionDir)lib\$(PlatformToolset)\$(Platform)\$(Configuration)\libhashset-1.dll" -&gt; "$(TargetDir)libhashset-1.dll"</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -227,6 +242,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <MinimumRequiredVersion>5.2</MinimumRequiredVersion>
     </Link>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static|x64'">
     <ClCompile>
@@ -256,6 +272,7 @@
       <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
       <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Shared|x64'">
     <ClCompile>
@@ -285,6 +302,13 @@
       <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
       <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent />
+    <PostBuildEvent>
+      <Command>copy /B /Y /N "$(SolutionDir)lib\$(PlatformToolset)\$(Platform)\$(Configuration)\libhashset-1.dll" "$(TargetDir)libhashset-1.dll"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>cp "$(SolutionDir)lib\$(PlatformToolset)\$(Platform)\$(Configuration)\libhashset-1.dll" -&gt; "$(TargetDir)libhashset-1.dll"</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -457,16 +457,16 @@ errno_t hash_set_clear(hash_set_t *const instance)
 	return 0;
 }
 
-errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset, uint64_t *const value)
+errno_t hash_set_iterate(const hash_set_t *const instance, uintptr_t *const cursor, uint64_t *const value)
 {
 	size_t index;
 
-	if ((!instance) || (!offset) || (!instance->data.values))
+	if ((!instance) || (!cursor) || (*cursor >= SIZE_MAX) || (!instance->data.values))
 	{
 		return EINVAL;
 	}
 
-	for (index = *offset; index < instance->data.capacity; ++index)
+	for (index = (size_t)(*cursor); index < instance->data.capacity; ++index)
 	{
 		if (IS_VALID(instance->data, index))
 		{
@@ -474,12 +474,12 @@ errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset,
 			{
 				*value = instance->data.values[index];
 			}
-			*offset = index + 1U;
+			*cursor = (uintptr_t)(index + 1U);
 			return 0;
 		}
 	}
 
-	*offset = SIZE_MAX;
+	*cursor = (uintptr_t)SIZE_MAX;
 	return ENOENT;
 }
 

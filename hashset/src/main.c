@@ -203,8 +203,9 @@ static int test_function_2(hash_set_t *const hash_set)
 
 	memset(test, 0, sizeof(test));
 
-	for (size_t r = 0U, offset = 0U; r < 64U; ++r, offset = 0U)
+	for (size_t r = 0U; r < 64U; ++r)
 	{
+		uintptr_t cursor = 0U;
 		for (size_t j = 0U; j < ARRSIZE / 3U; ++j)
 		{
 			size_t rnd;
@@ -228,7 +229,7 @@ static int test_function_2(hash_set_t *const hash_set)
 				PRINT_SET_INFO(2);
 			}
 		}
-		while (!hash_set_iterate(hash_set, &offset, &value))
+		while (!hash_set_iterate(hash_set, &cursor, &value))
 		{
 			if (!test[value])
 			{

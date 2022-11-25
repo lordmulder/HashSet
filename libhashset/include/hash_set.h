@@ -38,7 +38,7 @@ HASHSET_API errno_t hash_set_remove(hash_set_t *const instance, const uint64_t v
 HASHSET_API errno_t hash_set_clear(hash_set_t *const instance);
 
 HASHSET_API errno_t hash_set_contains(const hash_set_t *const instance, const uint64_t value);
-HASHSET_API errno_t hash_set_iterate(const hash_set_t *const instance, size_t *const offset, uint64_t *const value);
+HASHSET_API errno_t hash_set_iterate(const hash_set_t *const instance, uintptr_t *const cursor, uint64_t *const value);
 HASHSET_API size_t hash_set_size(const hash_set_t *const instance);
 HASHSET_API errno_t hash_set_info(const hash_set_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
 

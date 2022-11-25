@@ -19,8 +19,8 @@ Here is a simple example of how to use LibHashSet in your application:
 
 int main(int argc, char* argv[])
 {
-	size_t offset = 0U;
 	uint64_t value;
+	uintptr_t cursor = 0U;
 
 	/* create new hash set instance */
 	hash_set_t *const hash_set = hash_set_create(0U, -1.0);
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 	printf("Total number of items: %zu\n", hash_set_size(hash_set));
 
 	/* print all items in the set */
-	while (hash_set_iterate(hash_set, &offset, &value) == 0)
+	while (hash_set_iterate(hash_set, &cursor, &value) == 0)
 	{
 		printf("Item: %016llX\n", value);
 	}
@@ -274,7 +274,7 @@ This function returns one value at a time. It should be called repeatedly, until
 ```C
 errno_t hash_set_iterate(
 	const hash_set_t *const instance,
-	size_t *const offset,
+	uintptr_t *const cursor,
 	uint64_t *const value
 );
 ```
@@ -284,9 +284,11 @@ errno_t hash_set_iterate(
 * `instance`  
   A pointer to the hash set instance to be examined, as returned by the [hash_set_create()](#hash_set_create) function.
 
-* `offset`  
-  A pointer to a variable of type `size_t` where the current position in the set is maintained.  
-  This variable **must** be initialized to *zero* before the *first* invocation; it is updated on subsequent invocations.
+* `cursor`  
+  A pointer to a variable of type `uintptr_t` where the current iterator state (position) is saved.  
+  This variable **must** be initialized to the value `0U`, by the calling application, prior to the the *first* invocation!  
+  Each invocation will update the value of `*cursor`; the value **shall not** be altered by the application.
+  
 
 * `value`  
   A pointer to a variable of type `uint64_t` where the next value in the set is stored on success.  

@@ -106,39 +106,39 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>libhashset-1.$(PlatformToolset).$(PlatformTarget).debug</TargetName>
+    <OutDir>$(SolutionDir)\lib\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libhashset-1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>libhashset-1.$(PlatformToolset).$(PlatformTarget)</TargetName>
+    <OutDir>$(SolutionDir)\lib\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libhashset-1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shared|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>libhashset-1.$(PlatformTarget)</TargetName>
+    <OutDir>$(SolutionDir)\lib\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libhashset-1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>libhashset-1.$(PlatformToolset).$(PlatformTarget).debug</TargetName>
+    <OutDir>$(SolutionDir)\lib\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libhashset-1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>libhashset-1.$(PlatformToolset).$(PlatformTarget)</TargetName>
+    <OutDir>$(SolutionDir)\lib\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libhashset-1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shared|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>libhashset-1.$(PlatformTarget)</TargetName>
+    <OutDir>$(SolutionDir)\lib\$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)\obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libhashset-1</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
