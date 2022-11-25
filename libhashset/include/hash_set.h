@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#ifdef HASHSET_DLL
+#if defined(_WIN32) && defined(HASHSET_DLL)
 #  ifdef _HASHSET_EXPORTS
 #    define HASHSET_API extern __declspec(dllexport)
 #  else

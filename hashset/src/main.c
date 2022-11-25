@@ -3,7 +3,7 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
-#include "hash_set.h"
+#include <hash_set.h>
 
 #include <stdio.h>
 #include <time.h>
@@ -203,7 +203,7 @@ static int test_function_2(hash_set_t *const hash_set)
 
 	memset(test, 0, sizeof(test));
 
-	for (size_t r = 0U, offset = 0U; r < 8U; ++r, offset = 0U)
+	for (size_t r = 0U, offset = 0U; r < 64U; ++r, offset = 0U)
 	{
 		for (size_t j = 0U; j < ARRSIZE / 3U; ++j)
 		{

@@ -61,12 +61,6 @@ static const double DEFAULT_LOADFCTR =   0.8;
 /* Math                                              */
 /* ------------------------------------------------- */
 
-static FORCE_INLINE size_t safe_mult(const size_t a, const size_t b)
-{
-	const size_t result = a * b;
-	return  ((a == 0U) || (result / a == b)) ? result : SIZE_MAX;
-}
-
 static FORCE_INLINE size_t div_ceil(const size_t value, const size_t divisor)
 {
 	return (value / divisor) + ((value % divisor != 0U) ? 1U : 0U);
@@ -93,13 +87,24 @@ static FORCE_INLINE size_t safe_decr(const size_t value)
 	return (value > 0U) ? (value - 1U) : value;
 }
 
+static FORCE_INLINE size_t safe_mult(const size_t a, const size_t b)
+{
+	const size_t result = a * b;
+	return ((a == 0U) || (result / a == b)) ? result : SIZE_MAX;
+}
+
+static FORCE_INLINE size_t safe_times2(const size_t value)
+{
+	return (value <= (SIZE_MAX / 2U)) ? (2U * value) : SIZE_MAX;
+}
+
 static FORCE_INLINE size_t next_pow2(const size_t target)
 {
 	size_t result = MINIMUM_CAPACITY;
 
 	while (result < target)
 	{
-		result = safe_mult(result, 2U);
+		result = safe_times2(result);
 	}
 
 	return result;
@@ -351,12 +356,12 @@ errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value)
 
 	if ((!slot_reused) && (safe_add(instance->valid, instance->deleted) >= instance->limit))
 	{
-		const errno_t error = rebuild_set(instance, safe_mult(instance->data.capacity, 2U));
+		const errno_t error = rebuild_set(instance, safe_times2(instance->data.capacity));
 		if (error)
 		{
 			return error;
 		}
-		else if (find_slot(&instance->data, value, &index, &slot_reused))
+		if (find_slot(&instance->data, value, &index, &slot_reused))
 		{
 			return EFAULT;
 		}
@@ -408,8 +413,8 @@ errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value)
 
 	if (instance->deleted > (instance->limit / 2U))
 	{
-		const size_t new_capacity = next_pow2(round_sz(safe_incr(instance->valid) / instance->load_factor));
-		const errno_t error =  rebuild_set(instance, (instance->data.capacity > new_capacity) ? new_capacity : instance->data.capacity);
+		const size_t min_capacity = next_pow2(round_sz(safe_incr(instance->valid) / instance->load_factor));
+		const errno_t error =  rebuild_set(instance, (instance->data.capacity > min_capacity) ? min_capacity : instance->data.capacity);
 		if (error && (error != ENOMEM))
 		{
 			return error;
@@ -426,15 +431,17 @@ errno_t hash_set_clear(hash_set_t *const instance)
 		return EINVAL;
 	}
 
-	if ((!instance->valid) && (!instance->deleted))
+	if (instance->valid || instance->deleted)
+	{
+		const size_t count = div_ceil(instance->data.capacity, 8U);
+		instance->valid = instance->deleted = 0U;
+		zero_memory(instance->data.used,    count, sizeof(uint8_t));
+		zero_memory(instance->data.deleted, count, sizeof(uint8_t));
+	}
+	else
 	{
 		return EAGAIN;
 	}
-
-	instance->valid = instance->deleted = 0U;
-
-	zero_memory(instance->data.used,    div_ceil(instance->data.capacity, 8U), sizeof(uint8_t));
-	zero_memory(instance->data.deleted, div_ceil(instance->data.capacity, 8U), sizeof(uint8_t));
 
 	if (instance->data.capacity > MINIMUM_CAPACITY)
 	{
