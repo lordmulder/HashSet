@@ -30,6 +30,13 @@ typedef int errno_t;
 struct _hash_set;
 typedef struct _hash_set hash_set_t;
 
+HASHSET_API const uint16_t HASHSET_VERSION_MAJOR;
+HASHSET_API const uint16_t HASHSET_VERSION_MINOR;
+HASHSET_API const uint16_t HASHSET_VERSION_PATCH;
+
+HASHSET_API const char *const HASHSET_BUILD_DATE;
+HASHSET_API const char *const HASHSET_BUILD_TIME;
+
 HASHSET_API hash_set_t *hash_set_create(const size_t initial_capacity, const double load_factor);
 HASHSET_API void hash_set_destroy(hash_set_t *const instance);
 

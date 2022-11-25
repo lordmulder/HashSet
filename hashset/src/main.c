@@ -394,7 +394,8 @@ static int test_function_4(hash_set_t *const hash_set)
 
 int main(void)
 {
-	printf("LibHashSet Test [%s]\n\n", __DATE__);
+	printf("LibHashSet Test v%" PRIu16 ".%" PRIu16 ".%" PRIu16 " [%s]\n\n",
+		HASHSET_VERSION_MAJOR, HASHSET_VERSION_MINOR, HASHSET_VERSION_PATCH, HASHSET_BUILD_DATE);
 
 	hash_set_t *const hash_set = hash_set_create(0U, -1.0);
 	if (!hash_set)
