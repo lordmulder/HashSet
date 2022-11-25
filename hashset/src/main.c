@@ -326,7 +326,7 @@ static int test_function_3(hash_set_t *const hash_set)
 /* TEST #4                                                                   */
 /* ========================================================================= */
 
-#define LIMIT (UINT64_MAX >> 2)
+#define LIMIT (((uint64_t)UINT32_MAX) >> 2)
 
 static int test_function_4(hash_set_t *const hash_set)
 {

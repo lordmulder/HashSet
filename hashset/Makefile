@@ -1,19 +1,24 @@
 DUMPMACHINE := $(shell $(CC) -dumpmachine)
 
+ifneq ($(SANITIZE_ADDRESS),1)
+  XCFLAGS = -O3 -DNDEBUG
 ifneq ($(firstword $(filter x86_64-%,$(DUMPMACHINE))),)
-  XCFLAGS = -march=x86-64 -mtune=nocona -s
+  XCFLAGS += -march=x86-64 -mtune=nocona
 else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
-  XCFLAGS = -march=pentiumpro -mtune=intel -s
+  XCFLAGS += -march=pentiumpro -mtune=intel
+endif
+else
+  XCFLAGS = -fsanitize=address -static-libasan -g
 endif
 
-ifeq ($(OS),Windows_NT)
+ifneq ($(firstword $(filter %-mingw32 %-cygwin,$(DUMPMACHINE))),)
+  EXE_SUFFIX := .exe
 ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
   XCFLAGS += -Wl,--large-address-aware
 endif
-  EXE_SUFFIX := .exe
 endif
 
-CFLAGS = -std=c99 -O3 -DNDEBUG -D_DEFAULT_SOURCE -Wpedantic -I../libhashset/include $(XCFLAGS)
+CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -I../libhashset/include $(XCFLAGS)
 
 SRC_PATH := src
 BIN_PATH := bin

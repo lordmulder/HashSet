@@ -1,9 +1,16 @@
 SUBDIRS := libhashset hashset
 
-.PHONY: all clean
+BUILD_ALL := $(patsubst %,build_rule\:%,$(SUBDIRS))
+CLEAN_ALL := $(patsubst %,clean_rule\:%,$(SUBDIRS))
 
-all:
-	for subdir in $(SUBDIRS); do $(MAKE) -C $$subdir; done
+.PHONY: all clean $(BUILD_ALL) $(CLEAN_ALL)
 
-clean:
-	for subdir in $(SUBDIRS); do $(MAKE) -C $$subdir clean; done
+all: $(BUILD_ALL)
+
+clean: $(CLEAN_ALL)
+
+$(BUILD_ALL):
+	$(MAKE) -C $(patsubst build_rule:%,%,$@)
+
+$(CLEAN_ALL):
+	$(MAKE) -C $(patsubst clean_rule:%,%,$@) clean

@@ -1,12 +1,17 @@
 DUMPMACHINE := $(shell $(CC) -dumpmachine)
 
+ifneq ($(SANITIZE_ADDRESS),1)
+  XCFLAGS = -O3 -DNDEBUG
 ifneq ($(firstword $(filter x86_64-%,$(DUMPMACHINE))),)
-  XCFLAGS = -march=x86-64 -mtune=nocona
+  XCFLAGS += -march=x86-64 -mtune=nocona
 else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
-  XCFLAGS = -march=pentiumpro -mtune=intel
+  XCFLAGS += -march=pentiumpro -mtune=intel
+endif
+else
+  XCFLAGS = -fsanitize=address -static-libasan -g
 endif
 
-CFLAGS = -std=c99 -O3 -DNDEBUG -Wpedantic -Iinclude $(XCFLAGS)
+CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -Iinclude $(XCFLAGS)
 
 SRC_PATH := src
 OBJ_PATH := obj
