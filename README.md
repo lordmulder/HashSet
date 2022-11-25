@@ -72,7 +72,9 @@ int main(int argc, char* argv[])
 API Reference
 =============
 
-This section describes the LibHashSet C99 programming interface.
+This section describes the LibHashSet programming interface, as declared in the `<hash_set.h>` header file.
+
+***Note:*** On Microsoft Windows, when using LibHashSet as a "shared" library (DLL), the macro `HASHSET_DLL` must be defined *before* including `<hash_set.h>`! This is **not** required or allowed when using the "static" library.
 
 Types
 -----
