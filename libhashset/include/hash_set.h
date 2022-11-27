@@ -41,7 +41,7 @@ typedef struct _hash_set32 hash_set32_t;
 typedef struct _hash_set64 hash_set64_t;
 
 HASHSET_API hash_set32_t *hash_set_create32(const size_t initial_capacity, const double load_factor);
-HASHSET_API hash_set64_t* hash_set_create64(const size_t initial_capacity, const double load_factor);
+HASHSET_API hash_set64_t *hash_set_create64(const size_t initial_capacity, const double load_factor);
 
 HASHSET_API void hash_set_destroy32(hash_set32_t *const instance);
 HASHSET_API void hash_set_destroy64(hash_set64_t *const instance);

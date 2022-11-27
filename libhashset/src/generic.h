@@ -163,7 +163,7 @@ static INLINE void put_value(struct DATA_STRUCT *const data, const size_t index,
 	}
 }
 
-static size_t INLINE compute_limit(const size_t capacity, const double load_factor)
+static INLINE size_t compute_limit(const size_t capacity, const double load_factor)
 {
 	size_t limit = round_sz(capacity * load_factor);
 
@@ -216,7 +216,7 @@ static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_c
 /* PUBLIC FUNCTIONS                                                          */
 /* ========================================================================= */
 
-hash_set_t* MAKE_NAME(hash_set_create)(const size_t initial_capacity, const double load_factor)
+hash_set_t *MAKE_NAME(hash_set_create)(const size_t initial_capacity, const double load_factor)
 {
 	hash_set_t* instance = (hash_set_t*) calloc(1U, sizeof(hash_set_t));
 	if (!instance)

@@ -66,7 +66,8 @@ static INLINE uint64_t random_next(random_t *const rnd)
 {\
 	if (!hash_set_info64(hash_set, &capacity, &valid, &deleted, &limit)) \
 	{ \
-		printf("[#%d] capacity: %010zu, valid: %010zu, deleted: %010zu, limit: %010zu\n", (X), capacity, valid, deleted, limit); \
+		fprintf(stdout, "[#%d] capacity: %010zu, valid: %010zu, deleted: %010zu, limit: %010zu\n", (X), capacity, valid, deleted, limit); \
+		fflush(stdout); \
 	} \
 } \
 while(0)
@@ -80,6 +81,7 @@ while(0)
 static int test_function_1(hash_set64_t *const hash_set)
 {
 	size_t capacity, valid, deleted, limit;
+	uint8_t spinner = 0U;
 
 	for (size_t r = 0U; r < 5U; ++r)
 	{
@@ -94,7 +96,10 @@ static int test_function_1(hash_set64_t *const hash_set)
 					return EXIT_FAILURE;
 				}
 			}
-			PRINT_SET_INFO(1);
+			if (!(++spinner & 0x0F))
+			{
+				PRINT_SET_INFO(1);
+			}
 		}
 
 		if (hash_set_size64(hash_set) != MAXIMUM - 4U)
@@ -143,7 +148,10 @@ static int test_function_1(hash_set64_t *const hash_set)
 					return EXIT_FAILURE;
 				}
 			}
-			PRINT_SET_INFO(1);
+			if (!(++spinner & 0x0F))
+			{
+				PRINT_SET_INFO(1);
+			}
 		}
 
 		if (hash_set_size64(hash_set) != 1U)
@@ -197,7 +205,7 @@ static int test_function_2(hash_set64_t *const hash_set)
 {
 	size_t capacity, valid, deleted, limit;
 	uint64_t value;
-	uint8_t test[ARRSIZE];
+	uint8_t test[ARRSIZE], spinner = 0U;
 
 	random_t random;
 	random_init(&random);
@@ -227,7 +235,10 @@ static int test_function_2(hash_set64_t *const hash_set)
 					printf("Insert operation has failed! (error: %d)\n", error);
 					return EXIT_FAILURE;
 				}
-				PRINT_SET_INFO(2);
+				if (!(++spinner & 0x0F))
+				{
+					PRINT_SET_INFO(2);
+				}
 			}
 		}
 		while (!hash_set_iterate64(hash_set, &cursor, &value))
@@ -248,8 +259,11 @@ static int test_function_2(hash_set64_t *const hash_set)
 					printf("Remove operation has failed! (error: %d)\n", error);
 					return EXIT_FAILURE;
 				}
-				PRINT_SET_INFO(2);
 				test[j] = UINT8_C(0);
+				if (!(++spinner & 0x0F))
+				{
+					PRINT_SET_INFO(2);
+				}
 			}
 		}
 		if (hash_set_size64(hash_set) != 0U)
