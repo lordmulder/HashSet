@@ -119,4 +119,4 @@ static INLINE void clear_flag(uint8_t* const flags, const size_t index)
 	flags[index / 8U] &= ~(UINT8_C(1) << (index % 8U));
 }
 
-#endif
+#endif /* _LIBHASHSET_COMMON_INCLUDED */

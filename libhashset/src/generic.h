@@ -3,23 +3,16 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
-#ifndef _LIBHASHSET_COMMON_INCLUDED
-#error File "common.h" must be included first!
-#endif
+#ifndef _LIBHASHSET_GENERIC_INCLUDED
+#define _LIBHASHSET_GENERIC_INCLUDED
 
 #ifndef NAME_SUFFIX
 #error NAME_SUFFIX must be defined!
 #endif
 
-#ifndef SET_TYPE
-#error SET_TYPE must be defined!
-#endif
-
-#ifndef VALUE_TYPE
-#error VALUE_TYPE must be defined!
-#endif
-
 #define MAKE_NAME(X) NAME_GLUE(X,NAME_SUFFIX)
+
+#include "common.h"
 
 /* ------------------------------------------------- */
 /* Data types                                        */
@@ -29,7 +22,7 @@
 
 struct DATA_STRUCT
 {
-	VALUE_TYPE *values;
+	value_t *values;
 	uint8_t *used, *deleted;
 	size_t capacity;
 };
@@ -55,7 +48,7 @@ static FORCE_INLINE void hash_update(uint64_t *const hash, uint64_t value)
 	while (value >>= CHAR_BIT);
 }
 
-static INLINE uint64_t hash_compute(const uint64_t i, const VALUE_TYPE value)
+static INLINE uint64_t hash_compute(const uint64_t i, const value_t value)
 {
 	uint64_t hash = UINT64_C(14695981039346656037);
 	hash_update(&hash, i);
@@ -76,7 +69,7 @@ static INLINE bool_t alloc_data(struct DATA_STRUCT *const data, const size_t cap
 {
 	zero_memory(data, 1U, sizeof(struct DATA_STRUCT));
 
-	data->values = (VALUE_TYPE*) calloc(capacity, sizeof(VALUE_TYPE));
+	data->values = (value_t*) calloc(capacity, sizeof(value_t));
 	if (!data->values)
 	{
 		return FALSE;
@@ -118,7 +111,7 @@ static INLINE void free_data(struct DATA_STRUCT *const data)
 
 #define INDEX(X) ((size_t)((X) % data->capacity))
 
-static INLINE bool_t find_slot(const struct DATA_STRUCT *const data, const VALUE_TYPE value, size_t *const index_out, bool_t *const reused_out)
+static INLINE bool_t find_slot(const struct DATA_STRUCT *const data, const value_t value, size_t *const index_out, bool_t *const reused_out)
 {
 	uint64_t loop = 0U;
 	bool_t is_saved = FALSE;
@@ -155,7 +148,7 @@ static INLINE bool_t find_slot(const struct DATA_STRUCT *const data, const VALUE
 	return FALSE;
 }
 
-static INLINE void put_value(struct DATA_STRUCT *const data, const size_t index, const VALUE_TYPE value, const bool_t reusing)
+static INLINE void put_value(struct DATA_STRUCT *const data, const size_t index, const value_t value, const bool_t reusing)
 {
 	data->values[index] = value;
 	if (reusing)
@@ -182,7 +175,7 @@ static size_t INLINE compute_limit(const size_t capacity, const double load_fact
 	return limit;
 }
 
-static INLINE errno_t rebuild_set(SET_TYPE *const instance, const size_t new_capacity)
+static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_capacity)
 {
 	struct DATA_STRUCT temp;
 	size_t index, k;
@@ -201,7 +194,7 @@ static INLINE errno_t rebuild_set(SET_TYPE *const instance, const size_t new_cap
 	{
 		if (IS_VALID(instance->data, k))
 		{
-			const VALUE_TYPE value = instance->data.values[k];
+			const value_t value = instance->data.values[k];
 			if (find_slot(&temp, value, &index, NULL))
 			{
 				free_data(&temp);
@@ -223,9 +216,9 @@ static INLINE errno_t rebuild_set(SET_TYPE *const instance, const size_t new_cap
 /* PUBLIC FUNCTIONS                                                          */
 /* ========================================================================= */
 
-SET_TYPE* MAKE_NAME(hash_set_create)(const size_t initial_capacity, const double load_factor)
+hash_set_t* MAKE_NAME(hash_set_create)(const size_t initial_capacity, const double load_factor)
 {
-	SET_TYPE* instance = (SET_TYPE*) calloc(1U, sizeof(SET_TYPE));
+	hash_set_t* instance = (hash_set_t*) calloc(1U, sizeof(hash_set_t));
 	if (!instance)
 	{
 		return NULL;
@@ -243,17 +236,17 @@ SET_TYPE* MAKE_NAME(hash_set_create)(const size_t initial_capacity, const double
 	return instance;
 }
 
-void MAKE_NAME(hash_set_destroy)(SET_TYPE *instance)
+void MAKE_NAME(hash_set_destroy)(hash_set_t *instance)
 {
 	if (instance)
 	{
 		free_data(&instance->data);
-		zero_memory(instance, 1U, sizeof(SET_TYPE));
+		zero_memory(instance, 1U, sizeof(hash_set_t));
 		SAFE_FREE(instance);
 	}
 }
 
-errno_t MAKE_NAME(hash_set_insert)(SET_TYPE *const instance, const VALUE_TYPE value)
+errno_t MAKE_NAME(hash_set_insert)(hash_set_t *const instance, const value_t value)
 {
 	size_t index;
 	bool_t slot_reused;
@@ -292,7 +285,7 @@ errno_t MAKE_NAME(hash_set_insert)(SET_TYPE *const instance, const VALUE_TYPE va
 	return 0;
 }
 
-errno_t MAKE_NAME(hash_set_contains)(const SET_TYPE *const instance, const VALUE_TYPE value)
+errno_t MAKE_NAME(hash_set_contains)(const hash_set_t *const instance, const value_t value)
 {
 	if ((!instance) || (!instance->data.values))
 	{
@@ -302,7 +295,7 @@ errno_t MAKE_NAME(hash_set_contains)(const SET_TYPE *const instance, const VALUE
 	return (instance->valid && find_slot(&instance->data, value, NULL, NULL)) ? 0 : ENOENT;
 }
 
-errno_t MAKE_NAME(hash_set_remove)(SET_TYPE *const instance, const VALUE_TYPE value)
+errno_t MAKE_NAME(hash_set_remove)(hash_set_t *const instance, const value_t value)
 {
 	size_t index;
 
@@ -338,7 +331,7 @@ errno_t MAKE_NAME(hash_set_remove)(SET_TYPE *const instance, const VALUE_TYPE va
 	return 0;
 }
 
-errno_t MAKE_NAME(hash_set_clear)(SET_TYPE *const instance)
+errno_t MAKE_NAME(hash_set_clear)(hash_set_t *const instance)
 {
 	if ((!instance) || (!instance->data.values))
 	{
@@ -369,7 +362,7 @@ errno_t MAKE_NAME(hash_set_clear)(SET_TYPE *const instance)
 	return 0;
 }
 
-errno_t MAKE_NAME(hash_set_iterate)(const SET_TYPE *const instance, uintptr_t *const cursor, VALUE_TYPE *const value)
+errno_t MAKE_NAME(hash_set_iterate)(const hash_set_t *const instance, uintptr_t *const cursor, value_t *const value)
 {
 	size_t index;
 
@@ -395,12 +388,12 @@ errno_t MAKE_NAME(hash_set_iterate)(const SET_TYPE *const instance, uintptr_t *c
 	return ENOENT;
 }
 
-size_t MAKE_NAME(hash_set_size)(const SET_TYPE *const instance)
+size_t MAKE_NAME(hash_set_size)(const hash_set_t *const instance)
 {
 	return instance ? instance->valid : 0U;
 }
 
-errno_t MAKE_NAME(hash_set_info)(const SET_TYPE *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit)
+errno_t MAKE_NAME(hash_set_info)(const hash_set_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit)
 {
 	if ((!instance) || (!instance->data.values))
 	{
@@ -426,3 +419,25 @@ errno_t MAKE_NAME(hash_set_info)(const SET_TYPE *const instance, size_t *const c
 
 	return 0;
 }
+
+HASHSET_API errno_t MAKE_NAME(hash_set_dump)(const hash_set_t *const instance, int (*const callback)(const size_t index, const int status, const value_t value))
+{
+	size_t index;
+
+	if ((!instance) || (!instance->data.values))
+	{
+		return EINVAL;
+	}
+
+	for (index = 0U; index < instance->data.capacity; ++index)
+	{
+		if (!callback(index, get_flag(instance->data.used, index) ? (get_flag(instance->data.deleted, index) ? 2 : 1) : 0, instance->data.values[index]))
+		{
+			return ECANCELED;
+		}
+	}
+
+	return 0;
+}
+
+#endif /* _LIBHASHSET_GENERIC_INCLUDED */

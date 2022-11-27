@@ -7,7 +7,7 @@
 #include "common.h"
 
 #define NAME_SUFFIX 32
-#define SET_TYPE hash_set32_t
-#define VALUE_TYPE uint32_t
+typedef hash_set32_t hash_set_t;
+typedef uint32_t value_t;
 
 #include "generic.h"

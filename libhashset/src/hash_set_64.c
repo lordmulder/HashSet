@@ -4,10 +4,9 @@
 /******************************************************************************/
 
 #include <hash_set.h>
-#include "common.h"
 
 #define NAME_SUFFIX 64
-#define SET_TYPE hash_set64_t
-#define VALUE_TYPE uint64_t
+typedef hash_set64_t hash_set_t;
+typedef uint64_t value_t;
 
 #include "generic.h"

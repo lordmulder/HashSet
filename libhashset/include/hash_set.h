@@ -67,7 +67,10 @@ HASHSET_API size_t hash_set_size64(const hash_set64_t *const instance);
 HASHSET_API errno_t hash_set_info32(const hash_set32_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
 HASHSET_API errno_t hash_set_info64(const hash_set64_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
 
+HASHSET_API errno_t hash_set_dump32(const hash_set32_t *const instance, int (*const callback)(const size_t index, const int status, const uint32_t value));
+HASHSET_API errno_t hash_set_dump64(const hash_set64_t *const instance, int (*const callback)(const size_t index, const int status, const uint64_t value));
+
 #ifdef __cplusplus
 }
 #endif
-#endif
+#endif /* _LIBHASHSET_INCLUDED */

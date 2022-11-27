@@ -394,6 +394,63 @@ On success, this function returns *zero*. On error, the appropriate error code i
 * `EFAULT`  
   Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
 
+### hash_set_dump()
+
+Dump the current status and content of all "slots" of the hash set.
+
+```C
+errno_t hash_set_dump(
+	const hash_set_t *const instance,
+	int (*callback)(const size_t index, const int status, const uint32_t value)
+);
+```
+
+#### Parameters
+
+* `instance`  
+  A pointer to the hash set instance to be examined, as returned by the [hash_set_create()](#hash_set_create) function.
+
+* `capacity`  
+  A pointer to the callback function that will be invoked once for every "slot" of the hash set.
+
+  ```C
+    int callback(
+		const size_t index,
+		const int status,
+		const uint32_t value
+	);
+  ```
+  ##### Parameters
+
+  * `index`  
+    The index of the current "slot" within the hash set.
+
+  * `status`  
+    Indicates the status of the current "slot":
+    - `0` &ndash; slot is *unused*
+    - `1` &ndash; slot is *valid*
+    - `2` &ndash; slot is *deleted*
+
+  * `value`  
+    The value that is stored at the current "slot" index.
+
+  ##### Return value
+
+  If the function returns *zero*, the iteration is cancelled; otherwise the iteration continues.
+
+#### Return value
+
+On success, this function returns *zero*. On error, the appropriate error code is returned. Possible error codes include:
+
+* `EINVAL`  
+  An invalid argument was given, e.g. `instance` was set to `NULL`.
+
+* `ECANCELED`  
+  The operation was cancelled by the calling application.
+
+* `EFAULT`  
+  Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
+
 Thread Safety
 -------------
 
