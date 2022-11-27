@@ -3,7 +3,7 @@ Introduction
 
 **LibHashSet** is a simple *hash set* implementation for C99. It uses open addressing and double hashing.
 
-At this time, the *only* type of elements (keys) supported is `uint64_t`.
+At this time, the *only* types of elements supported are `uint32_t` and `uint64_t`.
 
 This hash set implementation has been tested to *efficiently* handle several billions of items 😏
 
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 	uintptr_t cursor = 0U;
 
 	/* create new hash set instance */
-	hash_set_t *const hash_set = hash_set_create(0U, -1.0);
+	hash_set64_t *const hash_set = hash_set_create64(0U, -1.0);
 	if (!hash_set)
 	{
 		fputs("Allocation has failed!\n", stderr);
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 	/* add a number of items to the hash set, the set will grow as needed */
 	while (have_more_items())
 	{
-		const errno_t error = hash_set_insert(hash_set, get_next_item());
+		const errno_t error = hash_set_insert64(hash_set, get_next_item());
 		if (error)
 		{
 			fprintf(stderr, "Insert operation has failed! (error: %d)\n", error);
@@ -42,28 +42,28 @@ int main(int argc, char* argv[])
 	}
 
 	/* test whether hash set contains a specific item */
-	if (hash_set_contains(hash_set, 42U) == 0)
+	if (hash_set_contains64(hash_set, 42U) == 0)
 	{
 		puts("Set contains item!");
 
 		/* remove the existing item from the hash set */
-		if (hash_set_remove(hash_set, 42U) == 0)
+		if (hash_set_remove64(hash_set, 42U) == 0)
 		{
 			puts("Item has been removed!");
 		}
 	}
 
 	/* print total number of items in the hash set*/
-	printf("Total number of items: %zu\n", hash_set_size(hash_set));
+	printf("Total number of items: %zu\n", hash_set_size64(hash_set));
 
 	/* print all items in the set */
-	while (hash_set_iterate(hash_set, &cursor, &value) == 0)
+	while (hash_set_iterate64(hash_set, &cursor, &value) == 0)
 	{
 		printf("Item: %016llX\n", value);
 	}
 
 	/* destroy the hash set, when it is no longer needed! */
-	hash_set_destroy(hash_set);
+	hash_set_destroy64(hash_set);
 	return EXIT_SUCCESS;
 }
 ```
@@ -73,6 +73,8 @@ API Reference
 =============
 
 This section describes the LibHashSet programming interface, as declared in the `<hash_set.h>` header file.
+
+LibHashSet supports sets containing values of type `uint32_t` or `uint64_t`. For each value type, separate functions are provided. The functions for `uint32_t` and `uint64_t` hash sets can be distinguished by the suffix `…32` and `…64` suffix, respectively. In the following, the functions are described in their "generic" form.
 
 ***Note:*** On Microsoft Windows, when using LibHashSet as a "shared" library (DLL), the macro `HASHSET_DLL` must be defined *before* including `<hash_set.h>`! This is **not** required or allowed when using the "static" library.
 
@@ -164,7 +166,7 @@ Tries to insert the given value into the hash set. The operation fails, if the s
 ```C
 errno_t hash_set_insert(
 	hash_set_t *const instance,
-	const uint64_t value
+	const VALUE_TYPE value
 );
 ```
 
@@ -174,7 +176,7 @@ errno_t hash_set_insert(
   A pointer to the hash set instance to be modified, as returned by the [hash_set_create()](#hash_set_create) function.
 
 * `value`  
-  The value (key) to be inserted into the hash set. It can be *any* value in the `0U` to `UINT64_MAX` range.
+  The value (key) to be inserted into the hash set.
 
 #### Return value
 
@@ -201,7 +203,7 @@ Tries to remove the given value from the hash set. The operation fails, if the s
 ```C
 errno_t hash_set_remove(
 	hash_set_t *const instance,
-	const uint64_t value
+	const VALUE_TYPE value
 );
 ```
 
@@ -211,7 +213,7 @@ errno_t hash_set_remove(
   A pointer to the hash set instance to be modified, as returned by the [hash_set_create()](#hash_set_create) function.
 
 * `value`  
-  The value (key) to be removed from the hash set. It can be *any* value in the `0U` to `UINT64_MAX` range.
+  The value (key) to be removed from the hash set.
 
 #### Return value
 
@@ -260,7 +262,7 @@ Tests whether the hash set contains a value. The operation fails, if the set doe
 ```C
 errno_t hash_set_contains(
 	const hash_set_t *const instance,
-	const uint64_t value
+	const VALUE_TYPE value
 );
 ```
 
@@ -270,7 +272,7 @@ errno_t hash_set_contains(
   A pointer to the hash set instance to be examined, as returned by the [hash_set_create()](#hash_set_create) function.
 
 * `value`  
-  The value (key) to be searched in the hash set. It can be *any* value in the `0U` to `UINT64_MAX` range.
+  The value (key) to be searched in the hash set.
 
 #### Return value
 
@@ -297,7 +299,7 @@ This function returns one value at a time. It should be called repeatedly, until
 errno_t hash_set_iterate(
 	const hash_set_t *const instance,
 	uintptr_t *const cursor,
-	uint64_t *const value
+	VALUE_TYPE *const value
 );
 ```
 
@@ -310,10 +312,9 @@ errno_t hash_set_iterate(
   A pointer to a variable of type `uintptr_t` where the current iterator state (position) is saved.  
   This variable **must** be initialized to the value `0U`, by the calling application, prior to the the *first* invocation!  
   Each invocation will update the value of `*cursor`; the value **shall not** be altered by the application.
-  
 
 * `value`  
-  A pointer to a variable of type `uint64_t` where the next value in the set is stored on success.  
+  A pointer to a variable of type `uint32_t` or `uint64_t` where the next value in the set is stored on success.  
   The content of the variable should be considered *undefined*, if the invocation has failed.
 
 #### Return value

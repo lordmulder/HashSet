@@ -3,8 +3,8 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
-#ifndef _INC_HASHSET_H
-#define _INC_HASHSET_H
+#ifndef _LIBHASHSET_INCLUDED
+#define _LIBHASHSET_INCLUDED
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -27,9 +27,6 @@ extern "C" {
 typedef int errno_t;
 #endif
 
-struct _hash_set;
-typedef struct _hash_set hash_set_t;
-
 HASHSET_API const uint16_t HASHSET_VERSION_MAJOR;
 HASHSET_API const uint16_t HASHSET_VERSION_MINOR;
 HASHSET_API const uint16_t HASHSET_VERSION_PATCH;
@@ -37,17 +34,38 @@ HASHSET_API const uint16_t HASHSET_VERSION_PATCH;
 HASHSET_API const char *const HASHSET_BUILD_DATE;
 HASHSET_API const char *const HASHSET_BUILD_TIME;
 
-HASHSET_API hash_set_t *hash_set_create(const size_t initial_capacity, const double load_factor);
-HASHSET_API void hash_set_destroy(hash_set_t *const instance);
+struct _hash_set32;
+struct _hash_set64;
 
-HASHSET_API errno_t hash_set_insert(hash_set_t *const instance, const uint64_t value);
-HASHSET_API errno_t hash_set_remove(hash_set_t *const instance, const uint64_t value);
-HASHSET_API errno_t hash_set_clear(hash_set_t *const instance);
+typedef struct _hash_set32 hash_set32_t;
+typedef struct _hash_set64 hash_set64_t;
 
-HASHSET_API errno_t hash_set_contains(const hash_set_t *const instance, const uint64_t value);
-HASHSET_API errno_t hash_set_iterate(const hash_set_t *const instance, uintptr_t *const cursor, uint64_t *const value);
-HASHSET_API size_t hash_set_size(const hash_set_t *const instance);
-HASHSET_API errno_t hash_set_info(const hash_set_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
+HASHSET_API hash_set32_t *hash_set_create32(const size_t initial_capacity, const double load_factor);
+HASHSET_API hash_set64_t* hash_set_create64(const size_t initial_capacity, const double load_factor);
+
+HASHSET_API void hash_set_destroy32(hash_set32_t *const instance);
+HASHSET_API void hash_set_destroy64(hash_set64_t *const instance);
+
+HASHSET_API errno_t hash_set_insert32(hash_set32_t *const instance, const uint32_t value);
+HASHSET_API errno_t hash_set_insert64(hash_set64_t *const instance, const uint64_t value);
+
+HASHSET_API errno_t hash_set_remove32(hash_set32_t *const instance, const uint32_t value);
+HASHSET_API errno_t hash_set_remove64(hash_set64_t *const instance, const uint64_t value);
+
+HASHSET_API errno_t hash_set_clear32(hash_set32_t *const instance);
+HASHSET_API errno_t hash_set_clear64(hash_set64_t *const instance);
+
+HASHSET_API errno_t hash_set_contains32(const hash_set32_t *const instance, const uint32_t value);
+HASHSET_API errno_t hash_set_contains64(const hash_set64_t *const instance, const uint64_t value);
+
+HASHSET_API errno_t hash_set_iterate32(const hash_set32_t *const instance, uintptr_t *const cursor, uint32_t *const value);
+HASHSET_API errno_t hash_set_iterate64(const hash_set64_t *const instance, uintptr_t *const cursor, uint64_t *const value);
+
+HASHSET_API size_t hash_set_size32(const hash_set32_t *const instance);
+HASHSET_API size_t hash_set_size64(const hash_set64_t *const instance);
+
+HASHSET_API errno_t hash_set_info32(const hash_set32_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
+HASHSET_API errno_t hash_set_info64(const hash_set64_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,7 @@
 DUMPMACHINE := $(shell $(CC) -dumpmachine)
 
 ifneq ($(SANITIZE_ADDRESS),1)
-  XCFLAGS = -O3 -DNDEBUG
+  XCFLAGS = -Ofast -DNDEBUG -s -static
 ifneq ($(firstword $(filter x86_64-%,$(DUMPMACHINE))),)
   XCFLAGS += -march=x86-64 -mtune=nocona
 else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
@@ -22,19 +22,22 @@ CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -I../libhashset/include $(XCFLAGS
 
 SRC_PATH := src
 BIN_PATH := bin
+ALL_PATH := $(SRC_PATH) $(BIN_PATH)
 
 BIN_FILE := $(BIN_PATH)/hashset-test$(EXE_SUFFIX)
 SRC_FILE := $(SRC_PATH)/main.c
 LIB_FILE := ../libhashset/lib/libhashset-1.a
 
-.PHONY: all clean
+.PHONY: all build clean
 
-all: $(BIN_FILE)
+all: clean build
 
-$(BIN_FILE): $(SRC_FILE) $(LIB_FILE) $(BIN_PATH)
-	$(CC) $(CFLAGS) $< -o $@ $(LIB_FILE)
+build: $(ALL_PATH) $(BIN_FILE)
 
-$(SRC_PATH) $(BIN_PATH):
+$(BIN_FILE): $(SRC_FILE) $(LIB_FILE)
+	$(CC) $(CFLAGS) $^ -o $@
+
+$(ALL_PATH):
 	mkdir -p $@
 
 clean:

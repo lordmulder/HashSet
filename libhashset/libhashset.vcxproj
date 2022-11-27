@@ -40,9 +40,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\hash_set.h" />
+    <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\generic.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\hash_set.c" />
+    <ClCompile Include="src\hash_set_32.c" />
+    <ClCompile Include="src\hash_set_64.c" />
+    <ClCompile Include="src\version.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
