@@ -74,7 +74,7 @@ API Reference
 
 This section describes the LibHashSet programming interface, as declared in the `<hash_set.h>` header file.
 
-LibHashSet supports sets containing values of type `uint32_t` or `uint64_t`. For each value type, separate functions are provided. The functions for `uint32_t`- and `uint64_t`-based hash sets can be distinguished by the suffix `…32` and `…64` suffix, respectively. In the following, the functions are described in their "generic" form.
+LibHashSet supports sets containing values of type `uint32_t` or `uint64_t`. For each value type, separate functions are provided. The functions for `uint32_t`- and `uint64_t`-based hash sets can be distinguished by the suffix `…32` and `…64`, respectively. In the following, the functions are described in their "generic" (`value_t`) form.
 
 ***Note:*** On Microsoft Windows, when using LibHashSet as a "shared" library (DLL), the macro `HASHSET_DLL` must be defined *before* including `<hash_set.h>`! This is **not** required or allowed when using the "static" library.
 
@@ -401,7 +401,7 @@ Dump the current status and content of all "slots" of the hash set.
 ```C
 errno_t hash_set_dump(
 	const hash_set_t *const instance,
-	int (*callback)(const size_t index, const int status, const uint32_t value)
+	int (*callback)(const size_t index, const char status, const value_t value)
 );
 ```
 
@@ -416,8 +416,8 @@ errno_t hash_set_dump(
   ```C
     int callback(
 		const size_t index,
-		const int status,
-		const uint32_t value
+		const char status,
+		const value_t value
 	);
   ```
   ##### Parameters
@@ -427,16 +427,16 @@ errno_t hash_set_dump(
 
   * `status`  
     Indicates the status of the current "slot":
-    - `0` &ndash; slot is *unused*
-    - `1` &ndash; slot is *valid*
-    - `2` &ndash; slot is *deleted*
+    - `'u'` &ndash; the slot is *unused*
+    - `'v'` &ndash; the slot is *valid*
+    - `'d'` &ndash; the slot is *deleted*
 
   * `value`  
     The value that is stored at the current "slot" index.
 
   ##### Return value
 
-  If the function returns *zero*, the iteration is cancelled; otherwise the iteration continues.
+  If the function returns a *non-zero* value, the iteration continues; otherwise it is cancelled.
 
 #### Return value
 

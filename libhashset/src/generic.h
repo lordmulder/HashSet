@@ -420,7 +420,7 @@ errno_t MAKE_NAME(hash_set_info)(const hash_set_t *const instance, size_t *const
 	return 0;
 }
 
-HASHSET_API errno_t MAKE_NAME(hash_set_dump)(const hash_set_t *const instance, int (*const callback)(const size_t index, const int status, const value_t value))
+HASHSET_API errno_t MAKE_NAME(hash_set_dump)(const hash_set_t *const instance, int (*const callback)(const size_t index, const char status, const value_t value))
 {
 	size_t index;
 
@@ -431,7 +431,7 @@ HASHSET_API errno_t MAKE_NAME(hash_set_dump)(const hash_set_t *const instance, i
 
 	for (index = 0U; index < instance->data.capacity; ++index)
 	{
-		if (!callback(index, get_flag(instance->data.used, index) ? (get_flag(instance->data.deleted, index) ? 2 : 1) : 0, instance->data.values[index]))
+		if (!callback(index, get_flag(instance->data.used, index) ? (get_flag(instance->data.deleted, index) ? 'd' : 'v') : 'u', instance->data.values[index]))
 		{
 			return ECANCELED;
 		}
