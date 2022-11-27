@@ -74,7 +74,7 @@ API Reference
 
 This section describes the LibHashSet programming interface, as declared in the `<hash_set.h>` header file.
 
-LibHashSet supports sets containing values of type `uint32_t` or `uint64_t`. For each value type, separate functions are provided. The functions for `uint32_t` and `uint64_t` hash sets can be distinguished by the suffix `…32` and `…64` suffix, respectively. In the following, the functions are described in their "generic" form.
+LibHashSet supports sets containing values of type `uint32_t` or `uint64_t`. For each value type, separate functions are provided. The functions for `uint32_t`- and `uint64_t`-based hash sets can be distinguished by the suffix `…32` and `…64` suffix, respectively. In the following, the functions are described in their "generic" form.
 
 ***Note:*** On Microsoft Windows, when using LibHashSet as a "shared" library (DLL), the macro `HASHSET_DLL` must be defined *before* including `<hash_set.h>`! This is **not** required or allowed when using the "static" library.
 
@@ -166,7 +166,7 @@ Tries to insert the given value into the hash set. The operation fails, if the s
 ```C
 errno_t hash_set_insert(
 	hash_set_t *const instance,
-	const VALUE_TYPE value
+	const value_t value
 );
 ```
 
@@ -203,7 +203,7 @@ Tries to remove the given value from the hash set. The operation fails, if the s
 ```C
 errno_t hash_set_remove(
 	hash_set_t *const instance,
-	const VALUE_TYPE value
+	const value_t value
 );
 ```
 
@@ -262,7 +262,7 @@ Tests whether the hash set contains a value. The operation fails, if the set doe
 ```C
 errno_t hash_set_contains(
 	const hash_set_t *const instance,
-	const VALUE_TYPE value
+	const value_t value
 );
 ```
 
@@ -299,7 +299,7 @@ This function returns one value at a time. It should be called repeatedly, until
 errno_t hash_set_iterate(
 	const hash_set_t *const instance,
 	uintptr_t *const cursor,
-	VALUE_TYPE *const value
+	value_t *const value
 );
 ```
 
