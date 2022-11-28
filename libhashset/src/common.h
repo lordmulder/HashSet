@@ -44,9 +44,6 @@ static const double DEFAULT_LOADFCTR =   0.8;
 
 #define SAFE_FREE(X) do { if ((X)) { free((X)); (X) = NULL; } } while(0)
 
-#define _NAME_GLUE_HELPER(X,Y) X##Y
-#define NAME_GLUE(X,Y) _NAME_GLUE_HELPER(X,Y)
-
 /* ------------------------------------------------- */
 /* Math                                              */
 /* ------------------------------------------------- */
@@ -101,20 +98,51 @@ static FORCE_INLINE size_t next_pow2(const size_t target)
 }
 
 /* ------------------------------------------------- */
+/* Hash function                                     */
+/* ------------------------------------------------- */
+
+static FORCE_INLINE void hash_update(uint64_t* const hash, uint64_t value)
+{
+	do
+	{
+		*hash ^= value & 0xFF;
+		*hash *= UINT64_C(1099511628211);
+	}
+	while (value >>= CHAR_BIT);
+}
+
+static INLINE uint64_t hash_compute(const uint64_t i, const uint64_t value)
+{
+	uint64_t hash = UINT64_C(14695981039346656037);
+	hash_update(&hash, i);
+	hash_update(&hash, value);
+	return hash;
+}
+
+/* ------------------------------------------------- */
+/* Memory                                            */
+/* ------------------------------------------------- */
+
+static INLINE void zero_memory(void *const addr, const size_t count, const size_t size)
+{
+	memset(addr, 0, safe_mult(count, size));
+}
+
+/* ------------------------------------------------- */
 /* Flags                                             */
 /* ------------------------------------------------- */
 
-static INLINE bool_t get_flag(const uint8_t* const flags, const size_t index)
+static INLINE bool_t get_flag(const uint8_t *const flags, const size_t index)
 {
 	return (flags[index / 8U] >> (index % 8U)) & UINT8_C(1);
 }
 
-static INLINE void set_flag(uint8_t* const flags, const size_t index)
+static INLINE void set_flag(uint8_t *const flags, const size_t index)
 {
 	flags[index / 8U] |= UINT8_C(1) << (index % 8U);
 }
 
-static INLINE void clear_flag(uint8_t* const flags, const size_t index)
+static INLINE void clear_flag(uint8_t *const flags, const size_t index)
 {
 	flags[index / 8U] &= ~(UINT8_C(1) << (index % 8U));
 }
