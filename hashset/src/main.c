@@ -27,6 +27,10 @@
 /* Utilities                                                                 */
 /* ========================================================================= */
 
+#define INVERT(X) do { (X) = (!(X)); } while(0)
+
+#define UNUSED(X) ((void)X)
+
 #define ARRAY_SIZE(X) (sizeof(X) / sizeof((X)[0U]))
 
 #ifdef _WIN32
@@ -78,14 +82,25 @@ while(0)
 
 #define MAXIMUM 425984U
 
+static int dump_callback(const size_t index, const char status, const uint64_t value)
+{
+#ifndef NDEBUG
+	printf("%016zX: %c -> %016" PRIX64 "\n", index, status, value);
+#else
+	UNUSED(index); UNUSED(status); UNUSED(value);
+#endif
+	return 1;
+}
+
 static int test_function_1(hash_set64_t *const hash_set)
 {
-	size_t capacity, valid, deleted, limit;
+	size_t r, capacity, valid, deleted, limit;
+	uint64_t i;
 	uint8_t spinner = 0U;
 
-	for (size_t r = 0U; r < 5U; ++r)
+	for (r = 0U; r < 5U; ++r)
 	{
-		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		for (i = 0; i < MAXIMUM; ++i)
 		{
 			if ((i != 3167U) && (i != 9887U) && (i != 185903U) && (i != 387083U))
 			{
@@ -108,7 +123,7 @@ static int test_function_1(hash_set64_t *const hash_set)
 			return EXIT_FAILURE;
 		}
 
-		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		for (i = 0; i < MAXIMUM; ++i)
 		{
 			if ((i != 3167U) && (i != 9887U) && (i != 387083U))
 			{
@@ -127,7 +142,7 @@ static int test_function_1(hash_set64_t *const hash_set)
 			return EXIT_FAILURE;
 		}
 
-		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		for (i = 0; i < MAXIMUM; ++i)
 		{
 			const errno_t error = hash_set_contains64(hash_set, i);
 			if (error != ((i != 3167U) && (i != 9887U) && (i != 387083U)) ? 0 : ENOENT)
@@ -137,7 +152,13 @@ static int test_function_1(hash_set64_t *const hash_set)
 			}
 		}
 
-		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		if (hash_set_dump64(hash_set, dump_callback))
+		{
+			puts("Dump operation has failed!");
+			return EXIT_FAILURE;
+		}
+
+		for (i = 0; i < MAXIMUM; ++i)
 		{
 			if ((i != 3167U) && (i != 9887U) && (i != 216263U) && (i != 387083U))
 			{
@@ -160,7 +181,7 @@ static int test_function_1(hash_set64_t *const hash_set)
 			return EXIT_FAILURE;
 		}
 
-		for (uint64_t i = 0; i < MAXIMUM; ++i)
+		for (i = 0; i < MAXIMUM; ++i)
 		{
 			const errno_t error = hash_set_contains64(hash_set, i);
 			if (error != ((i != 216263U) ? ENOENT : 0))
@@ -199,35 +220,49 @@ static int test_function_1(hash_set64_t *const hash_set)
 /* TEST #2                                                                   */
 /* ========================================================================= */
 
-#define ARRSIZE 14867U
+#define TEST_SIZE 499979U
 
 static int test_function_2(hash_set64_t *const hash_set)
 {
-	size_t capacity, valid, deleted, limit;
+	size_t r, j, capacity, valid, deleted, limit;
 	uint64_t value;
-	uint8_t test[ARRSIZE], spinner = 0U;
+	uint8_t spinner = 0U, *test1, *test2;
+	uintptr_t cursor;
 
 	random_t random;
 	random_init(&random);
 
-	memset(test, 0, sizeof(test));
-
-	for (size_t r = 0U; r < 64U; ++r)
+	test1 = (uint8_t*) malloc(TEST_SIZE * sizeof(uint8_t));
+	if (!test1)
 	{
-		uintptr_t cursor = 0U;
-		for (size_t j = 0U; j < ARRSIZE / 3U; ++j)
+		abort(); /*malloc has failed!*/
+	}
+
+	test2 = (uint8_t*) malloc(TEST_SIZE * sizeof(uint8_t));
+	if (!test2)
+	{
+		abort(); /*malloc has failed!*/
+	}
+
+	for (r = 0U; r < 64U; ++r)
+	{
+		memset(test1, 0, TEST_SIZE * sizeof(uint8_t));
+		memset(test2, 0, TEST_SIZE * sizeof(uint8_t));
+
+		for (j = 0U; j < TEST_SIZE / 3U; ++j)
 		{
 			size_t rnd;
 			do
 			{
-				rnd = random_next(&random) % ARRSIZE;
+				rnd = random_next(&random) % TEST_SIZE;
 			}
-			while (test[rnd]);
-			test[rnd] = UINT8_C(1);
+			while (test1[rnd]);
+			INVERT(test1[rnd]);
 		}
-		for (size_t j = 0U; j < ARRSIZE; ++j)
+
+		for (j = 0U; j < TEST_SIZE; ++j)
 		{
-			if (test[j])
+			if (test1[j])
 			{
 				const errno_t error = hash_set_insert64(hash_set, j);
 				if (error)
@@ -241,17 +276,30 @@ static int test_function_2(hash_set64_t *const hash_set)
 				}
 			}
 		}
+
+		cursor = 0U;
 		while (!hash_set_iterate64(hash_set, &cursor, &value))
 		{
-			if (!test[value])
+			if ((!test1[value]) || test2[value])
 			{
-				puts("Error has been detected!");
+				puts("Iteration error has been detected!");
+				return EXIT_FAILURE;
+			}
+			INVERT(test2[value]);
+		}
+
+		for (j = 0U; j < TEST_SIZE; ++j)
+		{
+			if (test1[j] != test2[j])
+			{
+				puts("Iteration error has been detected!");
 				return EXIT_FAILURE;
 			}
 		}
-		for (size_t j = 0U; j < ARRSIZE; ++j)
+
+		for (j = 0U; j < TEST_SIZE; ++j)
 		{
-			if (test[j])
+			if (test1[j])
 			{
 				const errno_t error = hash_set_remove64(hash_set, j);
 				if (error)
@@ -259,19 +307,22 @@ static int test_function_2(hash_set64_t *const hash_set)
 					printf("Remove operation has failed! (error: %d)\n", error);
 					return EXIT_FAILURE;
 				}
-				test[j] = UINT8_C(0);
 				if (!(++spinner & 0x0F))
 				{
 					PRINT_SET_INFO(2);
 				}
 			}
 		}
+
 		if (hash_set_size64(hash_set) != 0U)
 		{
 			puts("Invalid size!");
 			return EXIT_FAILURE;
 		}
 	}
+
+	free(test1);
+	free(test2);
 
 	PRINT_SET_INFO(2);
 	puts("---------");
@@ -285,14 +336,14 @@ static int test_function_2(hash_set64_t *const hash_set)
 
 static int test_function_3(hash_set64_t *const hash_set)
 {
-	size_t capacity, valid, deleted, limit;
+	size_t r, capacity, valid, deleted, limit;
 	uint8_t spinner = 0U;
 	clock_t last_update = clock();
 
 	random_t random;
 	random_init(&random);
 
-	for (size_t r = 0U; r < 3U; ++r)
+	for (r = 0U; r < 3U; ++r)
 	{
 		for (;;)
 		{
@@ -347,10 +398,11 @@ static int test_function_3(hash_set64_t *const hash_set)
 static int test_function_4(hash_set64_t *const hash_set)
 {
 	size_t capacity, valid, deleted, limit;
+	uint64_t value;
 	uint8_t spinner = 0U;
 	clock_t last_update = clock();
 
-	for (uint64_t value = 0U; value < LIMIT; ++value)
+	for (value = 0U; value < LIMIT; ++value)
 	{
 		const errno_t error = hash_set_insert64(hash_set, value);
 		if (error)
@@ -370,7 +422,7 @@ static int test_function_4(hash_set64_t *const hash_set)
 		}
 	}
 
-	for (uint64_t value = 0U; value < LIMIT; ++value)
+	for (value = 0U; value < LIMIT; ++value)
 	{
 		const errno_t error = hash_set_remove64(hash_set, value);
 		if (error)
@@ -408,10 +460,12 @@ static int test_function_4(hash_set64_t *const hash_set)
 
 int main(void)
 {
+	hash_set64_t *hash_set;
+
 	printf("LibHashSet Test v%" PRIu16 ".%" PRIu16 ".%" PRIu16 " [%s]\n\n",
 		HASHSET_VERSION_MAJOR, HASHSET_VERSION_MINOR, HASHSET_VERSION_PATCH, HASHSET_BUILD_DATE);
 
-	hash_set64_t *const hash_set = hash_set_create64(0U, -1.0);
+	hash_set = hash_set_create64(0U, -1.0);
 	if (!hash_set)
 	{
 		puts("Allocation has failed!");
