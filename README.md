@@ -17,13 +17,13 @@ Here is a simple example of how to use LibHashSet in your application:
 #include <hash_set.h>
 #include <stdio.h>
 
-int main(int argc, char* argv[])
+int main(void)
 {
 	uint64_t value;
 	uintptr_t cursor = 0U;
 
 	/* create new hash set instance */
-	hash_set64_t *const hash_set = hash_set_create64(0U, -1.0);
+	hash_set64_t* const hash_set = hash_set_create64(0U, -1.0);
 	if (!hash_set)
 	{
 		fputs("Allocation has failed!\n", stderr);
@@ -31,6 +31,7 @@ int main(int argc, char* argv[])
 	}
 
 	/* add a number of items to the hash set, the set will grow as needed */
+	puts("Insertign items, please wait...");
 	while (have_more_items())
 	{
 		const errno_t error = hash_set_insert64(hash_set, get_next_item());
@@ -40,21 +41,10 @@ int main(int argc, char* argv[])
 			return EXIT_FAILURE;
 		}
 	}
-
-	/* test whether hash set contains a specific item */
-	if (hash_set_contains64(hash_set, 42U) == 0)
-	{
-		puts("Set contains item!");
-
-		/* remove the existing item from the hash set */
-		if (hash_set_remove64(hash_set, 42U) == 0)
-		{
-			puts("Item has been removed!");
-		}
-	}
+	puts("Done.\n");
 
 	/* print total number of items in the hash set*/
-	printf("Total number of items: %zu\n", hash_set_size64(hash_set));
+	printf("Total number of items: %zu\n\n", hash_set_size64(hash_set));
 
 	/* print all items in the set */
 	while (hash_set_iterate64(hash_set, &cursor, &value) == 0)

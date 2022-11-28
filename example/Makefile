@@ -24,7 +24,7 @@ SRC_PATH := src
 BIN_PATH := bin
 ALL_PATH := $(SRC_PATH) $(BIN_PATH)
 
-BIN_FILE := $(BIN_PATH)/hashset-test$(EXE_SUFFIX)
+BIN_FILE := $(BIN_PATH)/hashset-example$(EXE_SUFFIX)
 SRC_FILE := $(SRC_PATH)/main.c
 LIB_FILE := ../libhashset/lib/libhashset-1.a
 

@@ -1,4 +1,4 @@
-SUBDIRS := libhashset hashset
+SUBDIRS := libhashset example test
 
 BUILD_ALL := $(patsubst %,build\:%,$(SUBDIRS))
 CLEAN_ALL := $(patsubst %,clean\:%,$(SUBDIRS))
