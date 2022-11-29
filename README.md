@@ -400,15 +400,15 @@ errno_t hash_set_dump(
 * `instance`  
   A pointer to the hash set instance to be examined, as returned by the [hash_set_create()](#hash_set_create) function.
 
-* `capacity`  
-  A pointer to the callback function that will be invoked once for every "slot" of the hash set.
+* `callback`  
+  A pointer to the callback function that will be invoked once for every "slot" in the hash set.
 
   ```C
-    int callback(
-		const size_t index,
-		const char status,
-		const value_t value
-	);
+  int callback(
+  	const size_t index,
+  	const char status,
+  	const value_t value
+  );
   ```
   ##### Parameters
 
