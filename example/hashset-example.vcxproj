@@ -39,12 +39,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\input.c" />
     <ClCompile Include="src\main.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libhashset\libhashset.vcxproj">
       <Project>{8cf3bd19-28b1-435d-b719-e00b052dfc3a}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\input.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

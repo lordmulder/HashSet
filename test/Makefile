@@ -1,7 +1,7 @@
 DUMPMACHINE := $(shell $(CC) -dumpmachine)
 
 ifneq ($(SANITIZE_ADDRESS),1)
-  XCFLAGS = -Ofast -DNDEBUG -s -static
+  XCFLAGS = -Ofast -flto -DNDEBUG -s -static
 ifneq ($(firstword $(filter x86_64-%,$(DUMPMACHINE))),)
   XCFLAGS += -march=x86-64 -mtune=nocona
 else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
@@ -25,7 +25,7 @@ BIN_PATH := bin
 ALL_PATH := $(SRC_PATH) $(BIN_PATH)
 
 BIN_FILE := $(BIN_PATH)/hashset-test$(EXE_SUFFIX)
-SRC_FILE := $(SRC_PATH)/main.c
+SRC_FILE := $(wildcard $(SRC_PATH)/*.c)
 LIB_FILE := ../libhashset/lib/libhashset-1.a
 
 .PHONY: all build clean

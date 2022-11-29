@@ -18,5 +18,19 @@
     <ClCompile Include="src\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\random.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

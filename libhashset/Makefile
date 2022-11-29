@@ -1,7 +1,7 @@
 DUMPMACHINE := $(shell $(CC) -dumpmachine)
 
 ifneq ($(SANITIZE_ADDRESS),1)
-  XCFLAGS = -Ofast -DNDEBUG
+  XCFLAGS = -Ofast -flto -DNDEBUG
 ifneq ($(firstword $(filter x86_64-%,$(DUMPMACHINE))),)
   XCFLAGS += -march=x86-64 -mtune=nocona
 else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)

@@ -40,11 +40,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\random.c" />
+    <ClCompile Include="src\tests.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libhashset\libhashset.vcxproj">
       <Project>{8cf3bd19-28b1-435d-b719-e00b052dfc3a}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\random.h" />
+    <ClInclude Include="src\tests.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
