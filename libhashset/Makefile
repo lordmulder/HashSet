@@ -1,14 +1,21 @@
 DUMPMACHINE := $(shell $(CC) -dumpmachine)
 
-ifneq ($(SANITIZE_ADDRESS),1)
-  XCFLAGS = -Ofast -flto -DNDEBUG
+ifneq ($(DEBUG),)
+  XCFLAGS = -Og -g
+else
+ifneq ($(ASAN),)
+  XCFLAGS = -O1 -g -fsanitize=address -fno-omit-frame-pointer -static-libasan
+else
+  XCFLAGS = -Ofast -DNDEBUG
 ifneq ($(firstword $(filter x86_64-%,$(DUMPMACHINE))),)
   XCFLAGS += -march=x86-64 -mtune=nocona
 else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
   XCFLAGS += -march=pentiumpro -mtune=intel
 endif
-else
-  XCFLAGS = -fsanitize=address -static-libasan -g
+ifneq ($(FLTO),)
+  XCFLAGS += -flto
+endif
+endif
 endif
 
 CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -Iinclude $(XCFLAGS)
