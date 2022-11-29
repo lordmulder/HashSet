@@ -4,10 +4,9 @@
 /******************************************************************************/
 
 #include <hash_set.h>
-#include "common.h"
 
 #define NAME_SUFFIX 32
 typedef hash_set32_t hash_set_t;
-typedef uint32_t value_t;
+typedef uint32_t item_t;
 
-#include "generic.h"
+#include "generic_hash_set.h"

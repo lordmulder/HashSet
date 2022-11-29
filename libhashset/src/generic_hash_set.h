@@ -3,8 +3,8 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
-#ifndef _LIBHASHSET_GENERIC_INCLUDED
-#define _LIBHASHSET_GENERIC_INCLUDED
+#ifndef _LIBHASHSET_GENERIC_SET_INCLUDED
+#define _LIBHASHSET_GENERIC_SET_INCLUDED
 
 #include "common.h"
 
@@ -23,7 +23,7 @@
 
 typedef struct DECLARE(_hash_set_data)
 {
-	value_t *values;
+	item_t *items;
 	uint8_t *used, *deleted;
 	size_t capacity;
 }
@@ -44,8 +44,8 @@ static INLINE bool_t alloc_data(hash_data_t *const data, const size_t capacity)
 {
 	zero_memory(data, 1U, sizeof(hash_data_t));
 
-	data->values = (value_t*) calloc(capacity, sizeof(value_t));
-	if (!data->values)
+	data->items = (item_t*) calloc(capacity, sizeof(item_t));
+	if (!data->items)
 	{
 		return FALSE;
 	}
@@ -53,7 +53,7 @@ static INLINE bool_t alloc_data(hash_data_t *const data, const size_t capacity)
 	data->used = (uint8_t*) calloc(div_ceil(capacity, 8U), sizeof(uint8_t));
 	if (!data->used)
 	{
-		SAFE_FREE(data->values);
+		SAFE_FREE(data->items);
 		return FALSE;
 	}
 
@@ -61,7 +61,7 @@ static INLINE bool_t alloc_data(hash_data_t *const data, const size_t capacity)
 	if (!data->deleted)
 	{
 		SAFE_FREE(data->used);
-		SAFE_FREE(data->values);
+		SAFE_FREE(data->items);
 		return FALSE;
 	}
 
@@ -73,7 +73,7 @@ static INLINE void free_data(hash_data_t *const data)
 {
 	if (data)
 	{
-		SAFE_FREE(data->values);
+		SAFE_FREE(data->items);
 		SAFE_FREE(data->used);
 		SAFE_FREE(data->deleted);
 		data->capacity = 0U;
@@ -86,13 +86,13 @@ static INLINE void free_data(hash_data_t *const data)
 
 #define INDEX(X) ((size_t)((X) % data->capacity))
 
-static INLINE bool_t find_slot(const hash_data_t *const data, const value_t value, size_t *const index_out, bool_t *const reused_out)
+static INLINE bool_t find_slot(const hash_data_t *const data, const item_t item, size_t *const index_out, bool_t *const reused_out)
 {
 	uint64_t loop = 0U;
 	bool_t is_saved = FALSE;
 	size_t index;
 
-	for (index = INDEX(hash_compute(loop, value)); get_flag(data->used, index); index = INDEX(hash_compute(++loop, value)))
+	for (index = INDEX(hash_compute(loop, item)); get_flag(data->used, index); index = INDEX(hash_compute(++loop, item)))
 	{
 		if (get_flag(data->deleted, index))
 		{
@@ -105,7 +105,7 @@ static INLINE bool_t find_slot(const hash_data_t *const data, const value_t valu
 		}
 		else
 		{
-			if (data->values[index] == value)
+			if (data->items[index] == item)
 			{
 				SAFE_SET(index_out, index);
 				SAFE_SET(reused_out, FALSE);
@@ -123,9 +123,10 @@ static INLINE bool_t find_slot(const hash_data_t *const data, const value_t valu
 	return FALSE;
 }
 
-static INLINE void put_value(hash_data_t *const data, const size_t index, const value_t value, const bool_t reusing)
+static INLINE void put_item(hash_data_t *const data, const size_t index, const item_t item, const bool_t reusing)
 {
-	data->values[index] = value;
+	data->items[index] = item;
+
 	if (reusing)
 	{
 		assert(get_flag(data->used, index));
@@ -169,13 +170,13 @@ static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_c
 	{
 		if (IS_VALID(instance->data, k))
 		{
-			const value_t value = instance->data.values[k];
-			if (find_slot(&temp, value, &index, NULL))
+			const item_t item = instance->data.items[k];
+			if (find_slot(&temp, item, &index, NULL))
 			{
 				free_data(&temp);
 				return EFAULT; /*this should never happen!*/
 			}
-			put_value(&temp, index, value, FALSE);
+			put_item(&temp, index, item, FALSE);
 		}
 	}
 
@@ -221,17 +222,17 @@ void DECLARE(hash_set_destroy)(hash_set_t *instance)
 	}
 }
 
-errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const value_t value)
+errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const item_t item)
 {
 	size_t index;
 	bool_t slot_reused;
 
-	if ((!instance) || (!instance->data.values))
+	if ((!instance) || (!instance->data.items))
 	{
 		return EINVAL;
 	}
 
-	if (find_slot(&instance->data, value, &index, &slot_reused))
+	if (find_slot(&instance->data, item, &index, &slot_reused))
 	{
 		return EEXIST;
 	}
@@ -243,13 +244,13 @@ errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const value_t value
 		{
 			return error;
 		}
-		if (find_slot(&instance->data, value, &index, &slot_reused))
+		if (find_slot(&instance->data, item, &index, &slot_reused))
 		{
 			return EFAULT;
 		}
 	}
 
-	put_value(&instance->data, index, value, slot_reused);
+	put_item(&instance->data, index, item, slot_reused);
 
 	instance->valid = safe_incr(instance->valid);
 	if (slot_reused)
@@ -260,26 +261,26 @@ errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const value_t value
 	return 0;
 }
 
-errno_t DECLARE(hash_set_contains)(const hash_set_t *const instance, const value_t value)
+errno_t DECLARE(hash_set_contains)(const hash_set_t *const instance, const item_t item)
 {
-	if ((!instance) || (!instance->data.values))
+	if ((!instance) || (!instance->data.items))
 	{
 		return EINVAL;
 	}
 
-	return (instance->valid && find_slot(&instance->data, value, NULL, NULL)) ? 0 : ENOENT;
+	return (instance->valid && find_slot(&instance->data, item, NULL, NULL)) ? 0 : ENOENT;
 }
 
-errno_t DECLARE(hash_set_remove)(hash_set_t *const instance, const value_t value)
+errno_t DECLARE(hash_set_remove)(hash_set_t *const instance, const item_t item)
 {
 	size_t index;
 
-	if ((!instance) || (!instance->data.values))
+	if ((!instance) || (!instance->data.items))
 	{
 		return EINVAL;
 	}
 
-	if ((!instance->valid) || (!find_slot(&instance->data, value, &index, NULL)))
+	if ((!instance->valid) || (!find_slot(&instance->data, item, &index, NULL)))
 	{
 		return ENOENT;
 	}
@@ -308,7 +309,7 @@ errno_t DECLARE(hash_set_remove)(hash_set_t *const instance, const value_t value
 
 errno_t DECLARE(hash_set_clear)(hash_set_t *const instance)
 {
-	if ((!instance) || (!instance->data.values))
+	if ((!instance) || (!instance->data.items))
 	{
 		return EINVAL;
 	}
@@ -337,29 +338,29 @@ errno_t DECLARE(hash_set_clear)(hash_set_t *const instance)
 	return 0;
 }
 
-errno_t DECLARE(hash_set_iterate)(const hash_set_t *const instance, uintptr_t *const cursor, value_t *const value)
+errno_t DECLARE(hash_set_iterate)(const hash_set_t *const instance, size_t *const cursor, item_t *const item)
 {
 	size_t index;
 
-	if ((!instance) || (!cursor) || (*cursor >= SIZE_MAX) || (!instance->data.values))
+	if ((!instance) || (!cursor) || (*cursor >= SIZE_MAX) || (!instance->data.items))
 	{
 		return EINVAL;
 	}
 
-	for (index = (size_t)(*cursor); index < instance->data.capacity; ++index)
+	for (index = *cursor; index < instance->data.capacity; ++index)
 	{
 		if (IS_VALID(instance->data, index))
 		{
-			if (value)
+			if (item)
 			{
-				*value = instance->data.values[index];
+				*item = instance->data.items[index];
 			}
-			*cursor = (uintptr_t)(index + 1U);
+			*cursor = index + 1U;
 			return 0;
 		}
 	}
 
-	*cursor = (uintptr_t)SIZE_MAX;
+	*cursor = SIZE_MAX;
 	return ENOENT;
 }
 
@@ -370,7 +371,7 @@ size_t DECLARE(hash_set_size)(const hash_set_t *const instance)
 
 errno_t DECLARE(hash_set_info)(const hash_set_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit)
 {
-	if ((!instance) || (!instance->data.values))
+	if ((!instance) || (!instance->data.items))
 	{
 		return EINVAL;
 	}
@@ -395,18 +396,18 @@ errno_t DECLARE(hash_set_info)(const hash_set_t *const instance, size_t *const c
 	return 0;
 }
 
-HASHSET_API errno_t DECLARE(hash_set_dump)(const hash_set_t *const instance, int (*const callback)(const size_t index, const char status, const value_t value))
+HASHSET_API errno_t DECLARE(hash_set_dump)(const hash_set_t *const instance, int (*const callback)(const size_t index, const char status, const item_t item))
 {
 	size_t index;
 
-	if ((!instance) || (!instance->data.values))
+	if ((!instance) || (!instance->data.items))
 	{
 		return EINVAL;
 	}
 
 	for (index = 0U; index < instance->data.capacity; ++index)
 	{
-		if (!callback(index, get_flag(instance->data.used, index) ? (get_flag(instance->data.deleted, index) ? 'd' : 'v') : 'u', instance->data.values[index]))
+		if (!callback(index, get_flag(instance->data.used, index) ? (get_flag(instance->data.deleted, index) ? 'd' : 'v') : 'u', instance->data.items[index]))
 		{
 			return ECANCELED;
 		}
@@ -415,4 +416,4 @@ HASHSET_API errno_t DECLARE(hash_set_dump)(const hash_set_t *const instance, int
 	return 0;
 }
 
-#endif /* _LIBHASHSET_GENERIC_INCLUDED */
+#endif /*_LIBHASHSET_GENERIC_SET_INCLUDED*/

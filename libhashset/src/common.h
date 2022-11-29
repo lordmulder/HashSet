@@ -101,7 +101,7 @@ static FORCE_INLINE size_t next_pow2(const size_t target)
 /* Hash function                                     */
 /* ------------------------------------------------- */
 
-static FORCE_INLINE void hash_update(uint64_t* const hash, uint64_t value)
+static FORCE_INLINE void hash_update(uint64_t *const hash, uint64_t value)
 {
 	do
 	{

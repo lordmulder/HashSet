@@ -16,8 +16,7 @@ int main(void)
 {
 	hash_set64_t *hash_set;
 	uint64_t value;
-	uintptr_t cursor = 0U;
-	size_t offset = 0U;
+	size_t cursor = 0U, offset = 0U;
 
 	/* print logo */
 	printf("LibHashSet Example v%" PRIu16 ".%" PRIu16 ".%" PRIu16 " [%s]\n\n",

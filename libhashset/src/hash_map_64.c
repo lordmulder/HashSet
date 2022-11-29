@@ -3,10 +3,10 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
-#include <hash_set.h>
+#include <hash_map.h>
 
 #define NAME_SUFFIX 64
-typedef hash_set64_t hash_set_t;
-typedef uint64_t item_t;
+typedef hash_map64_t hash_map_t;
+typedef uint64_t key_t;
 
-#include "generic_hash_set.h"
+#include "generic_hash_map.h"

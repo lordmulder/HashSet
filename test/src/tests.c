@@ -180,10 +180,9 @@ int test_function_1(hash_set64_t *const hash_set)
 
 int test_function_2(hash_set64_t *const hash_set)
 {
-	size_t r, j, capacity, valid, deleted, limit;
+	size_t r, j, cursor, capacity, valid, deleted, limit;
 	uint64_t value;
 	uint8_t spinner = 0U, *test1, *test2;
-	uintptr_t cursor;
 
 	random_t random;
 	random_init(&random);
