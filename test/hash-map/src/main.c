@@ -37,6 +37,7 @@ int main(void)
 	RUN_TEST_CASE(1);
 	RUN_TEST_CASE(2);
 	RUN_TEST_CASE(3);
+	RUN_TEST_CASE(4);
 
 	hash_map_destroy64(hash_set);
 	puts("Tests completed successfully.");

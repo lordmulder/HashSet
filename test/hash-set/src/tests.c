@@ -26,7 +26,7 @@
 {\
 	if (!hash_set_info64(hash_set, &capacity, &valid, &deleted, &limit)) \
 	{ \
-		fprintf(stdout, "[Test %d/%d] capacity: %010zu, valid: %010zu, deleted: %010zu, limit: %010zu\n", (X), TEST_COUNT, capacity, valid, deleted, limit); \
+		fprintf(stdout, "[SET %d/%d] capacity: %010zu, valid: %010zu, deleted: %010zu, limit: %010zu\n", (X), TEST_COUNT, capacity, valid, deleted, limit); \
 		fflush(stdout); \
 	} \
 } \

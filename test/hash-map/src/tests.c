@@ -12,7 +12,7 @@
 #include <string.h>
 #include <errno.h>
 
-#define TEST_COUNT 3
+#define TEST_COUNT 4
 
 /* ========================================================================= */
 /* Utilities                                                                 */
@@ -24,9 +24,9 @@
 
 #define PRINT_SET_INFO(X) do \
 {\
-	if (!hash_map_info64(hash_set, &capacity, &valid, &deleted, &limit)) \
+	if (!hash_map_info64(hash_map, &capacity, &valid, &deleted, &limit)) \
 	{ \
-		fprintf(stdout, "[Test %d/%d] capacity: %010zu, valid: %010zu, deleted: %010zu, limit: %010zu\n", (X), TEST_COUNT, capacity, valid, deleted, limit); \
+		fprintf(stdout, "[MAP %d/%d] capacity: %010zu, valid: %010zu, deleted: %010zu, limit: %010zu\n", (X), TEST_COUNT, capacity, valid, deleted, limit); \
 		fflush(stdout); \
 	} \
 } \
@@ -38,7 +38,7 @@ while(0)
 
 #define TEST_SIZE 499979U
 
-int test_function_1(hash_map64_t *const hash_set)
+int test_function_1(hash_map64_t *const hash_map)
 {
 	size_t r, j, cursor, capacity, valid, deleted, limit;
 	uint64_t key, value, *test_data;
@@ -86,7 +86,7 @@ int test_function_1(hash_map64_t *const hash_set)
 		{
 			if (test_key1[j])
 			{
-				const errno_t error = hash_map_insert64(hash_set, j, test_data[j] = random_next(&random));
+				const errno_t error = hash_map_insert64(hash_map, j, test_data[j] = random_next(&random));
 				if (error)
 				{
 					printf("Insert operation has failed! (error: %d)\n", error);
@@ -101,7 +101,7 @@ int test_function_1(hash_map64_t *const hash_set)
 
 		for (j = 0U; j < TEST_SIZE; ++j)
 		{
-			const errno_t error = hash_map_contains64(hash_set, j);
+			const errno_t error = hash_map_contains64(hash_map, j);
 			if (error != (test_key1[j] ? 0 : ENOENT))
 			{
 				printf("Contains operation has failed! (error: %d)\n", error);
@@ -110,7 +110,7 @@ int test_function_1(hash_map64_t *const hash_set)
 		}
 
 		cursor = 0U;
-		while (!hash_map_iterate64(hash_set, &cursor, &key, &value))
+		while (!hash_map_iterate64(hash_map, &cursor, &key, &value))
 		{
 			if ((!test_key1[key]) || test_key2[key])
 			{
@@ -133,7 +133,7 @@ int test_function_1(hash_map64_t *const hash_set)
 		{
 			if (test_key1[j])
 			{
-				if (!hash_map_get64(hash_set, j, &value))
+				if (!hash_map_get64(hash_map, j, &value))
 				{
 					if (value != test_data[j])
 					{
@@ -153,7 +153,7 @@ int test_function_1(hash_map64_t *const hash_set)
 		{
 			if (test_key1[j])
 			{
-				const errno_t error = hash_map_remove64(hash_set, j);
+				const errno_t error = hash_map_remove64(hash_map, j);
 				if (error)
 				{
 					printf("Remove operation has failed! (error: %d)\n", error);
@@ -168,7 +168,7 @@ int test_function_1(hash_map64_t *const hash_set)
 
 		for (j = 0U; j < TEST_SIZE; ++j)
 		{
-			const errno_t error = hash_map_contains64(hash_set, j);
+			const errno_t error = hash_map_contains64(hash_map, j);
 			if (error != ENOENT)
 			{
 				printf("Contains operation has failed! (error: %d)\n", error);
@@ -176,7 +176,7 @@ int test_function_1(hash_map64_t *const hash_set)
 			}
 		}
 
-		if (hash_map_size64(hash_set) != 0U)
+		if (hash_map_size64(hash_map) != 0U)
 		{
 			puts("Invalid size!");
 			return EXIT_FAILURE;
@@ -197,7 +197,7 @@ int test_function_1(hash_map64_t *const hash_set)
 /* TEST #2                                                                   */
 /* ========================================================================= */
 
-int test_function_2(hash_map64_t *const hash_set)
+int test_function_2(hash_map64_t *const hash_map)
 {
 	size_t r, j, capacity, valid, deleted, limit;
 	uint64_t value, *test_val;
@@ -238,7 +238,7 @@ int test_function_2(hash_map64_t *const hash_set)
 		{
 			if (test_key[j])
 			{
-				const errno_t error = hash_map_insert64(hash_set, j, test_val[j] = random_next(&random));
+				const errno_t error = hash_map_insert64(hash_map, j, test_val[j] = random_next(&random));
 				if (error)
 				{
 					printf("Insert operation has failed! (error: %d)\n", error);
@@ -255,7 +255,7 @@ int test_function_2(hash_map64_t *const hash_set)
 		{
 			if (test_key[j])
 			{
-				const errno_t error = hash_map_insert64(hash_set, j, test_val[j] = random_next(&random));
+				const errno_t error = hash_map_insert64(hash_map, j, test_val[j] = random_next(&random));
 				if (error != EEXIST)
 				{
 					printf("Insert operation has failed! (error: %d)\n", error);
@@ -272,7 +272,7 @@ int test_function_2(hash_map64_t *const hash_set)
 		{
 			if (test_key[j])
 			{
-				if (!hash_map_get64(hash_set, j, &value))
+				if (!hash_map_get64(hash_map, j, &value))
 				{
 					if (value != test_val[j])
 					{
@@ -288,7 +288,7 @@ int test_function_2(hash_map64_t *const hash_set)
 			}
 		}
 
-		if (hash_map_clear64(hash_set))
+		if (hash_map_clear64(hash_map))
 		{
 			puts("Failed to clear the map!");
 			return EXIT_FAILURE;
@@ -310,7 +310,7 @@ int test_function_2(hash_map64_t *const hash_set)
 
 #define VALUE(X) (((X) ^ UINT64_C(0xB7E151628AED2A6A)) * UINT64_C(65599))
 
-int test_function_3(hash_map64_t *const hash_set)
+int test_function_3(hash_map64_t *const hash_map)
 {
 	size_t r, cursor, capacity, valid, deleted, limit;
 	uint8_t spinner = 0U;
@@ -325,7 +325,7 @@ int test_function_3(hash_map64_t *const hash_set)
 		for (;;)
 		{
 			const uint64_t rnd = random_next(&random) & UINT64_C(0x1FFFFFFFFFFFFFF);
-			const errno_t error = hash_map_insert64(hash_set, rnd, VALUE(rnd));
+			const errno_t error = hash_map_insert64(hash_map, rnd, VALUE(rnd));
 			if (error)
 			{
 				if (error != EEXIST)
@@ -338,7 +338,7 @@ int test_function_3(hash_map64_t *const hash_set)
 					PRINT_SET_INFO(3);
 					printf("Collision detected! [0x%016" PRIX64 "]\n", rnd);
 					cursor = 0U;
-					while (!hash_map_iterate64(hash_set, &cursor, &key, &value))
+					while (!hash_map_iterate64(hash_map, &cursor, &key, &value))
 					{
 						if (value != VALUE(key))
 						{
@@ -363,7 +363,7 @@ int test_function_3(hash_map64_t *const hash_set)
 
 		PRINT_SET_INFO(3);
 
-		if (hash_map_clear64(hash_set))
+		if (hash_map_clear64(hash_map))
 		{
 			puts("Clear operation has failed!");
 			return EXIT_FAILURE;
@@ -371,6 +371,71 @@ int test_function_3(hash_map64_t *const hash_set)
 	}
 
 	PRINT_SET_INFO(3);
+	puts("---------");
+
+	return EXIT_SUCCESS;
+}
+
+/* ========================================================================= */
+/* TEST #4                                                                   */
+/* ========================================================================= */
+
+#define LIMIT (((uint64_t)UINT32_MAX) >> 3)
+
+int test_function_4(hash_map64_t *const hash_map)
+{
+	size_t capacity, valid, deleted, limit;
+	uint64_t key;
+	uint8_t spinner = 0U;
+	clock_t last_update = clock();
+
+	for (key = 0U; key < LIMIT; ++key)
+	{
+		const errno_t error = hash_map_insert64(hash_map, key, VALUE(key));
+		if (error)
+		{
+			PRINT_SET_INFO(4);
+			printf("Insert operation has failed! (error: %d)\n", error);
+			return EXIT_FAILURE;
+		}
+		if (!(++spinner & 0x7F))
+		{
+			const clock_t clock_now = clock();
+			if ((clock_now < last_update) || (clock_now >= last_update + CLOCKS_PER_SEC))
+			{
+				PRINT_SET_INFO(4);
+				last_update = clock_now;
+			}
+		}
+	}
+
+	for (key = 0U; key < LIMIT; ++key)
+	{
+		const errno_t error = hash_map_remove64(hash_map, key);
+		if (error)
+		{
+			PRINT_SET_INFO(4);
+			printf("Remove operation has failed! (error: %d)\n", error);
+			return EXIT_FAILURE;
+		}
+		if (!(++spinner & 0x7F))
+		{
+			const clock_t clock_now = clock();
+			if ((clock_now < last_update) || (clock_now >= last_update + CLOCKS_PER_SEC))
+			{
+				PRINT_SET_INFO(4);
+				last_update = clock_now;
+			}
+		}
+	}
+
+	if (hash_map_size64(hash_map) != 0U)
+	{
+		puts("Invalid size!");
+		return EXIT_FAILURE;
+	}
+
+	PRINT_SET_INFO(4);
 	puts("---------");
 
 	return EXIT_SUCCESS;
