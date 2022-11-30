@@ -1,6 +1,6 @@
-DUMPMACHINE := $(shell $(CC) -dumpmachine)
+DUMPMACHINE := $(strip $(shell $(CC) -dumpmachine))
 ifeq ($(DUMPMACHINE),)
-  $(error The C compiler could not be detected!)
+  $(error C compiler could not be detected!)
 endif
 
 ifneq ($(DEBUG),)

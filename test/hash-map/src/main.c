@@ -22,12 +22,12 @@ while(0)
 
 int main(void)
 {
-	hash_set64_t *hash_set;
+	hash_map64_t *hash_set;
 
-	printf("LibHashSet Hash-Set Test v%" PRIu16 ".%" PRIu16 ".%" PRIu16 " [%s]\n\n",
+	printf("LibHashSet Hash-Map Test v%" PRIu16 ".%" PRIu16 ".%" PRIu16 " [%s]\n\n",
 		HASHSET_VERSION_MAJOR, HASHSET_VERSION_MINOR, HASHSET_VERSION_PATCH, HASHSET_BUILD_DATE);
 
-	hash_set = hash_set_create64(0U, -1.0);
+	hash_set = hash_map_create64(0U, -1.0);
 	if (!hash_set)
 	{
 		puts("Allocation has failed!");
@@ -35,16 +35,13 @@ int main(void)
 	}
 
 	RUN_TEST_CASE(1);
-	RUN_TEST_CASE(2);
-	RUN_TEST_CASE(3);
-	RUN_TEST_CASE(4);
 
-	hash_set_destroy64(hash_set);
+	hash_map_destroy64(hash_set);
 	puts("Tests completed successfully.");
 	return EXIT_SUCCESS;
 
 failure:
-	hash_set_destroy64(hash_set);
+	hash_map_destroy64(hash_set);
 	puts("\nSomething went wrong !!!");
 	return EXIT_FAILURE;
 }
