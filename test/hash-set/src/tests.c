@@ -314,7 +314,7 @@ int test_function_3(hash_set64_t *const hash_set)
 				else
 				{
 					PRINT_SET_INFO(3);
-					printf("Collision detected! [%016" PRIx64 "]\n", rnd);
+					printf("Collision detected! [0x%016" PRIX64 "]\n", rnd);
 					break;
 				}
 			}

@@ -10,7 +10,7 @@ ALL_PATH := $(SRC_PATH) $(BIN_PATH)
 BIN_FILE := $(BIN_PATH)/test-hash-set$(EXE_SUFFIX)
 SRC_FILE := $(wildcard $(SRC_PATH)/*.c)
 
-.PHONY: all build clean
+.PHONY: all build clean test
 
 all: clean build
 
@@ -24,3 +24,6 @@ $(ALL_PATH):
 
 clean:
 	rm -vf $(BIN_FILE)
+
+test: build
+	./$(BIN_FILE)

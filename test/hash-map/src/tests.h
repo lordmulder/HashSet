@@ -9,5 +9,7 @@
 #include <hash_map.h>
 
 int test_function_1(hash_map64_t *const hash_set);
+int test_function_2(hash_map64_t *const hash_set);
+int test_function_3(hash_map64_t *const hash_set);
 
 #endif /*_TEST_TESTS_INCLUDED*/
