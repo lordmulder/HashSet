@@ -1,4 +1,4 @@
-SUBDIRS := hash-set
+SUBDIRS := hash-set hash-map
 
 BUILD_ALL := $(patsubst %,build\:%,$(SUBDIRS))
 CLEAN_ALL := $(patsubst %,clean\:%,$(SUBDIRS))

@@ -42,7 +42,7 @@ static INLINE bool_t alloc_data(hash_data_t *const data, const size_t capacity)
 	zero_memory(data, 1U, sizeof(hash_data_t));
 
 	data->keys = (value_t*) calloc(capacity, sizeof(value_t));
-	if (!data->values)
+	if (!data->keys)
 	{
 		return FALSE;
 	}
@@ -50,12 +50,14 @@ static INLINE bool_t alloc_data(hash_data_t *const data, const size_t capacity)
 	data->values = (value_t*) calloc(capacity, sizeof(value_t));
 	if (!data->values)
 	{
+		SAFE_FREE(data->keys);
 		return FALSE;
 	}
 
 	data->used = (uint8_t*) calloc(div_ceil(capacity, 8U), sizeof(uint8_t));
 	if (!data->used)
 	{
+		SAFE_FREE(data->keys);
 		SAFE_FREE(data->values);
 		return FALSE;
 	}
@@ -63,8 +65,9 @@ static INLINE bool_t alloc_data(hash_data_t *const data, const size_t capacity)
 	data->deleted = (uint8_t*) calloc(div_ceil(capacity, 8U), sizeof(uint8_t));
 	if (!data->deleted)
 	{
-		SAFE_FREE(data->used);
+		SAFE_FREE(data->keys);
 		SAFE_FREE(data->values);
+		SAFE_FREE(data->used);
 		return FALSE;
 	}
 
