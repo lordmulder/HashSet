@@ -44,6 +44,9 @@ static const double DEFAULT_LOADFCTR =   0.8;
 
 #define SAFE_FREE(X) do { if ((X)) { free((X)); (X) = NULL; } } while(0)
 
+#define _CONCAT(X,Y) X##Y
+#define CONCAT(X,Y) _CONCAT(X,Y)
+
 /* ------------------------------------------------- */
 /* Math                                              */
 /* ------------------------------------------------- */

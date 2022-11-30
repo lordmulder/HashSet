@@ -7,6 +7,7 @@
 
 #define NAME_SUFFIX 32
 typedef hash_map32_t hash_map_t;
-typedef uint32_t key_t;
+typedef hash_map_callback32_t hash_map_callback_t;
+typedef uint32_t value_t;
 
 #include "generic_hash_map.h"

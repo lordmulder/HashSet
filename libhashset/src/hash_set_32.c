@@ -7,6 +7,7 @@
 
 #define NAME_SUFFIX 32
 typedef hash_set32_t hash_set_t;
-typedef uint32_t item_t;
+typedef hash_set_callback32_t hash_set_callback_t;
+typedef uint32_t value_t;
 
 #include "generic_hash_set.h"

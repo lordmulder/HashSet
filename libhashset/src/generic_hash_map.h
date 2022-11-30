@@ -12,9 +12,6 @@
 #error NAME_SUFFIX must be defined!
 #endif
 
-#define _CONCAT(X,Y) X##Y
-#define CONCAT(X,Y) _CONCAT(X,Y)
-
 #define DECLARE(X) CONCAT(X,NAME_SUFFIX)
 
 /* ------------------------------------------------- */
@@ -23,8 +20,7 @@
 
 typedef struct DECLARE(_hash_map_data)
 {
-	key_t *keys;
-	uintptr_t *values;
+	value_t *keys, *values;
 	uint8_t *used, *deleted;
 	size_t capacity;
 }
@@ -45,13 +41,13 @@ static INLINE bool_t alloc_data(hash_data_t *const data, const size_t capacity)
 {
 	zero_memory(data, 1U, sizeof(hash_data_t));
 
-	data->keys = (key_t*) calloc(capacity, sizeof(key_t));
+	data->keys = (value_t*) calloc(capacity, sizeof(value_t));
 	if (!data->values)
 	{
 		return FALSE;
 	}
 
-	data->values = (uintptr_t*) calloc(capacity, sizeof(uintptr_t));
+	data->values = (value_t*) calloc(capacity, sizeof(value_t));
 	if (!data->values)
 	{
 		return FALSE;
@@ -94,7 +90,7 @@ static INLINE void free_data(hash_data_t *const data)
 
 #define INDEX(X) ((size_t)((X) % data->capacity))
 
-static INLINE bool_t find_slot(const hash_data_t *const data, const key_t key, size_t *const index_out, bool_t *const reused_out)
+static INLINE bool_t find_slot(const hash_data_t *const data, const value_t key, size_t *const index_out, bool_t *const reused_out)
 {
 	uint64_t loop = 0U;
 	bool_t is_saved = FALSE;
@@ -131,7 +127,7 @@ static INLINE bool_t find_slot(const hash_data_t *const data, const key_t key, s
 	return FALSE;
 }
 
-static INLINE void put_value(hash_data_t *const data, const size_t index, const key_t key, const uintptr_t value, const bool_t reusing)
+static INLINE void put_value(hash_data_t *const data, const size_t index, const value_t key, const value_t value, const bool_t reusing)
 {
 	data->keys[index] = key;
 	data->values[index] = value;
@@ -179,8 +175,7 @@ static INLINE errno_t rebuild_map(hash_map_t *const instance, const size_t new_c
 	{
 		if (IS_VALID(instance->data, k))
 		{
-			const key_t key = instance->data.keys[k];
-			const uintptr_t value = instance->data.values[k];
+			const value_t key = instance->data.keys[k], value = instance->data.values[k];
 			if (find_slot(&temp, key, &index, NULL))
 			{
 				free_data(&temp);
@@ -232,7 +227,7 @@ void DECLARE(hash_map_destroy)(hash_map_t *instance)
 	}
 }
 
-errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const key_t key, const uintptr_t value)
+errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, const value_t value)
 {
 	size_t index;
 	bool_t slot_reused;
@@ -244,7 +239,7 @@ errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const key_t key, co
 
 	if (find_slot(&instance->data, key, &index, &slot_reused))
 	{
-		instance->data.values[index] = index;
+		instance->data.values[index] = value;
 		return EEXIST;
 	}
 
@@ -272,7 +267,7 @@ errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const key_t key, co
 	return 0;
 }
 
-errno_t DECLARE(hash_map_contains)(const hash_map_t *const instance, const key_t key)
+errno_t DECLARE(hash_map_contains)(const hash_map_t *const instance, const value_t key)
 {
 	if ((!instance) || (!instance->data.keys))
 	{
@@ -282,7 +277,7 @@ errno_t DECLARE(hash_map_contains)(const hash_map_t *const instance, const key_t
 	return (instance->valid && find_slot(&instance->data, key, NULL, NULL)) ? 0 : ENOENT;
 }
 
-errno_t DECLARE(hash_map_get)(const hash_map_t *const instance, const key_t key, uintptr_t *const value)
+errno_t DECLARE(hash_map_get)(const hash_map_t *const instance, const value_t key, value_t *const value)
 {
 	size_t index;
 
@@ -300,7 +295,7 @@ errno_t DECLARE(hash_map_get)(const hash_map_t *const instance, const key_t key,
 	return 0;
 }
 
-errno_t DECLARE(hash_map_remove)(hash_map_t *const instance, const key_t key)
+errno_t DECLARE(hash_map_remove)(hash_map_t *const instance, const value_t key)
 {
 	size_t index;
 
@@ -367,7 +362,7 @@ errno_t DECLARE(hash_map_clear)(hash_map_t *const instance)
 	return 0;
 }
 
-errno_t DECLARE(hash_map_iterate)(const hash_map_t *const instance, size_t *const cursor, key_t *const key, uintptr_t *const value)
+errno_t DECLARE(hash_map_iterate)(const hash_map_t *const instance, size_t *const cursor, value_t *const key, value_t *const value)
 {
 	size_t index;
 
@@ -429,11 +424,11 @@ errno_t DECLARE(hash_map_info)(const hash_map_t *const instance, size_t *const c
 	return 0;
 }
 
-HASHSET_API errno_t DECLARE(hash_map_dump)(const hash_map_t *const instance, int (*const callback)(const size_t index, const char status, const key_t key, const uintptr_t value))
+HASHSET_API errno_t DECLARE(hash_map_dump)(const hash_map_t *const instance, const hash_map_callback_t callback)
 {
 	size_t index;
 
-	if ((!instance) || (!instance->data.values))
+	if ((!instance) || (!instance->data.values) || (!callback))
 	{
 		return EINVAL;
 	}

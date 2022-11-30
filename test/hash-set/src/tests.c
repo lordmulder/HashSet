@@ -38,12 +38,12 @@ while(0)
 
 #define MAXIMUM 425984U
 
-static int dump_callback(const size_t index, const char status, const uint64_t value)
+static int dump_callback(const size_t index, const char status, const uint64_t item)
 {
 #ifndef NDEBUG
-	printf("%016zX: %c -> %016" PRIX64 "\n", index, status, value);
+	printf("%016zX: %c -> %016" PRIX64 "\n", index, status, item);
 #else
-	UNUSED(index); UNUSED(status); UNUSED(value);
+	UNUSED(index); UNUSED(status); UNUSED(item);
 #endif
 	return 1;
 }

@@ -12,9 +12,6 @@
 #error NAME_SUFFIX must be defined!
 #endif
 
-#define _CONCAT(X,Y) X##Y
-#define CONCAT(X,Y) _CONCAT(X,Y)
-
 #define DECLARE(X) CONCAT(X,NAME_SUFFIX)
 
 /* ------------------------------------------------- */
@@ -23,7 +20,7 @@
 
 typedef struct DECLARE(_hash_set_data)
 {
-	item_t *items;
+	value_t *items;
 	uint8_t *used, *deleted;
 	size_t capacity;
 }
@@ -44,7 +41,7 @@ static INLINE bool_t alloc_data(hash_data_t *const data, const size_t capacity)
 {
 	zero_memory(data, 1U, sizeof(hash_data_t));
 
-	data->items = (item_t*) calloc(capacity, sizeof(item_t));
+	data->items = (value_t*) calloc(capacity, sizeof(value_t));
 	if (!data->items)
 	{
 		return FALSE;
@@ -86,7 +83,7 @@ static INLINE void free_data(hash_data_t *const data)
 
 #define INDEX(X) ((size_t)((X) % data->capacity))
 
-static INLINE bool_t find_slot(const hash_data_t *const data, const item_t item, size_t *const index_out, bool_t *const reused_out)
+static INLINE bool_t find_slot(const hash_data_t *const data, const value_t item, size_t *const index_out, bool_t *const reused_out)
 {
 	uint64_t loop = 0U;
 	bool_t is_saved = FALSE;
@@ -123,7 +120,7 @@ static INLINE bool_t find_slot(const hash_data_t *const data, const item_t item,
 	return FALSE;
 }
 
-static INLINE void put_item(hash_data_t *const data, const size_t index, const item_t item, const bool_t reusing)
+static INLINE void put_item(hash_data_t *const data, const size_t index, const value_t item, const bool_t reusing)
 {
 	data->items[index] = item;
 
@@ -170,7 +167,7 @@ static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_c
 	{
 		if (IS_VALID(instance->data, k))
 		{
-			const item_t item = instance->data.items[k];
+			const value_t item = instance->data.items[k];
 			if (find_slot(&temp, item, &index, NULL))
 			{
 				free_data(&temp);
@@ -222,7 +219,7 @@ void DECLARE(hash_set_destroy)(hash_set_t *instance)
 	}
 }
 
-errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const item_t item)
+errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const value_t item)
 {
 	size_t index;
 	bool_t slot_reused;
@@ -261,7 +258,7 @@ errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const item_t item)
 	return 0;
 }
 
-errno_t DECLARE(hash_set_contains)(const hash_set_t *const instance, const item_t item)
+errno_t DECLARE(hash_set_contains)(const hash_set_t *const instance, const value_t item)
 {
 	if ((!instance) || (!instance->data.items))
 	{
@@ -271,7 +268,7 @@ errno_t DECLARE(hash_set_contains)(const hash_set_t *const instance, const item_
 	return (instance->valid && find_slot(&instance->data, item, NULL, NULL)) ? 0 : ENOENT;
 }
 
-errno_t DECLARE(hash_set_remove)(hash_set_t *const instance, const item_t item)
+errno_t DECLARE(hash_set_remove)(hash_set_t *const instance, const value_t item)
 {
 	size_t index;
 
@@ -338,7 +335,7 @@ errno_t DECLARE(hash_set_clear)(hash_set_t *const instance)
 	return 0;
 }
 
-errno_t DECLARE(hash_set_iterate)(const hash_set_t *const instance, size_t *const cursor, item_t *const item)
+errno_t DECLARE(hash_set_iterate)(const hash_set_t *const instance, size_t *const cursor, value_t *const item)
 {
 	size_t index;
 
@@ -396,11 +393,11 @@ errno_t DECLARE(hash_set_info)(const hash_set_t *const instance, size_t *const c
 	return 0;
 }
 
-HASHSET_API errno_t DECLARE(hash_set_dump)(const hash_set_t *const instance, int (*const callback)(const size_t index, const char status, const item_t item))
+HASHSET_API errno_t DECLARE(hash_set_dump)(const hash_set_t *const instance, const hash_set_callback_t callback)
 {
 	size_t index;
 
-	if ((!instance) || (!instance->data.items))
+	if ((!instance) || (!instance->data.items) || (!callback))
 	{
 		return EINVAL;
 	}

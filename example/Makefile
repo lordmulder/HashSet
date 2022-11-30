@@ -1,52 +1,16 @@
-DUMPMACHINE := $(shell $(CC) -dumpmachine)
+SUBDIRS := hash-set
 
-ifneq ($(DEBUG),)
-  XCFLAGS = -Og -g
-else
-ifneq ($(ASAN),)
-  XCFLAGS = -O1 -g -fsanitize=address -fno-omit-frame-pointer -static-libasan
-else
-  XCFLAGS = -Ofast -DNDEBUG
-ifneq ($(firstword $(filter x86_64-%,$(DUMPMACHINE))),)
-  XCFLAGS += -march=x86-64 -mtune=nocona
-else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
-  XCFLAGS += -march=pentiumpro -mtune=intel
-endif
-ifneq ($(FLTO),)
-  XCFLAGS += -flto
-endif
-  XCFLAGS += -s -static
-endif
-endif
+BUILD_ALL := $(patsubst %,build\:%,$(SUBDIRS))
+CLEAN_ALL := $(patsubst %,clean\:%,$(SUBDIRS))
 
-ifneq ($(firstword $(filter %-mingw32 %-cygwin,$(DUMPMACHINE))),)
-  EXE_SUFFIX := .exe
-ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
-  XCFLAGS += -Wl,--large-address-aware
-endif
-endif
+.PHONY: all clean $(BUILD_ALL) $(CLEAN_ALL)
 
-CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -I../libhashset/include $(XCFLAGS)
+all: $(BUILD_ALL)
 
-SRC_PATH := src
-BIN_PATH := bin
-ALL_PATH := $(SRC_PATH) $(BIN_PATH)
+clean: $(CLEAN_ALL)
 
-BIN_FILE := $(BIN_PATH)/hashset-example$(EXE_SUFFIX)
-SRC_FILE := $(wildcard $(SRC_PATH)/*.c)
-LIB_FILE := ../libhashset/lib/libhashset-1.a
+$(BUILD_ALL):
+	$(MAKE) -C $(patsubst build:%,%,$@)
 
-.PHONY: all build clean
-
-all: clean build
-
-build: $(ALL_PATH) $(BIN_FILE)
-
-$(BIN_FILE): $(SRC_FILE) $(LIB_FILE)
-	$(CC) $(CFLAGS) -o $@ $^
-
-$(ALL_PATH):
-	mkdir -p $@
-
-clean:
-	rm -f $(BIN_FILE)
+$(CLEAN_ALL):
+	$(MAKE) -C $(patsubst clean:%,%,$@) clean

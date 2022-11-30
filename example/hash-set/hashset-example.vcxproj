@@ -39,26 +39,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\input.c" />
     <ClCompile Include="src\main.c" />
-    <ClCompile Include="src\random.c" />
-    <ClCompile Include="src\tests.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libhashset\libhashset.vcxproj">
+    <ClInclude Include="src\input.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\libhashset\libhashset.vcxproj">
       <Project>{8cf3bd19-28b1-435d-b719-e00b052dfc3a}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\random.h" />
-    <ClInclude Include="src\tests.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{0b7abb95-b60f-418b-8386-930b1629058f}</ProjectGuid>
-    <RootNamespace>hashset-test</RootNamespace>
+    <ProjectGuid>{8FB9B9DE-DC49-4224-892B-589422484766}</ProjectGuid>
+    <RootNamespace>example-hash-set</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
-    <ProjectName>hashset-test</ProjectName>
+    <ProjectName>example-hash-set</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -243,8 +241,6 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <MinimumRequiredVersion>5.1</MinimumRequiredVersion>
       <LargeAddressAware>true</LargeAddressAware>
-      <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
-      <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
   </ItemDefinitionGroup>
@@ -276,8 +272,6 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <MinimumRequiredVersion>5.1</MinimumRequiredVersion>
       <LargeAddressAware>true</LargeAddressAware>
-      <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
-      <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -342,8 +336,6 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <MinimumRequiredVersion>5.2</MinimumRequiredVersion>
-      <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
-      <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
   </ItemDefinitionGroup>
@@ -372,8 +364,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
-      <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
   </ItemDefinitionGroup>
@@ -403,8 +393,6 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <MinimumRequiredVersion>5.2</MinimumRequiredVersion>
-      <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
-      <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
@@ -439,8 +427,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <DelayLoadDLLs>advapi32.dll</DelayLoadDLLs>
-      <AdditionalDependencies>delayimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
