@@ -11,9 +11,11 @@ SRC_FILE := $(wildcard $(SRC_PATH)/*.c)
 OBJ_FILE := $(addprefix $(OBJ_PATH)/,$(patsubst %.c,%.o,$(notdir $(SRC_FILE))))
 LIB_FILE := $(LIB_PATH)/libhashset-1.a
 
-.PHONY: all build clean
+.PHONY: all build clean test
 
 all: clean build
+
+test: build
 
 build: $(ALL_PATH) $(LIB_FILE)
 

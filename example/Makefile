@@ -1,16 +1,8 @@
 SUBDIRS := hash-set hash-map
 
-BUILD_ALL := $(patsubst %,build\:%,$(SUBDIRS))
-CLEAN_ALL := $(patsubst %,clean\:%,$(SUBDIRS))
+.PHONY: all clean test $(SUBDIRS)
 
-.PHONY: all clean $(BUILD_ALL) $(CLEAN_ALL)
+all clean test: $(SUBDIRS)
 
-all: $(BUILD_ALL)
-
-clean: $(CLEAN_ALL)
-
-$(BUILD_ALL):
-	$(MAKE) -C $(patsubst build:%,%,$@)
-
-$(CLEAN_ALL):
-	$(MAKE) -C $(patsubst clean:%,%,$@) clean
+$(SUBDIRS):
+	$(MAKE) -C $@ $(MAKECMDGOALS)

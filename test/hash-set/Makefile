@@ -10,11 +10,9 @@ ALL_PATH := $(SRC_PATH) $(BIN_PATH)
 BIN_FILE := $(BIN_PATH)/test-hash-set$(EXE_SUFFIX)
 SRC_FILE := $(wildcard $(SRC_PATH)/*.c)
 
-.PHONY: all build clean test
+.PHONY: all clean test
 
-all: clean build
-
-build: $(ALL_PATH) $(BIN_FILE)
+all: clean $(ALL_PATH) $(BIN_FILE)
 
 $(BIN_FILE): $(SRC_FILE)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
@@ -22,8 +20,8 @@ $(BIN_FILE): $(SRC_FILE)
 $(ALL_PATH):
 	mkdir -p $@
 
+test: all
+	./$(BIN_FILE)
+
 clean:
 	rm -vf $(BIN_FILE)
-
-test: build
-	./$(BIN_FILE)
