@@ -1,22 +1,4 @@
-DUMPMACHINE := $(shell $(CC) -dumpmachine)
-
-ifneq ($(DEBUG),)
-  XCFLAGS = -Og -g
-else
-ifneq ($(ASAN),)
-  XCFLAGS = -O1 -g -fsanitize=address -fno-omit-frame-pointer -static-libasan
-else
-  XCFLAGS = -Ofast -DNDEBUG
-ifneq ($(firstword $(filter x86_64-%,$(DUMPMACHINE))),)
-  XCFLAGS += -march=x86-64 -mtune=nocona
-else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
-  XCFLAGS += -march=pentiumpro -mtune=intel
-endif
-ifneq ($(FLTO),)
-  XCFLAGS += -flto
-endif
-endif
-endif
+include ../config.mk
 
 CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -Iinclude $(XCFLAGS)
 
