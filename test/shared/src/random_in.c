@@ -3,7 +3,7 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
-#include "random.h"
+#include "../include/random_in.h"
 #include <string.h>
 
 #ifndef _WIN32

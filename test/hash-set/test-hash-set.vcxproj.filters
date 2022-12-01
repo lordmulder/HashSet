@@ -18,18 +18,18 @@
     <ClCompile Include="src\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\random.c">
+    <ClCompile Include="src\tests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\tests.c">
+    <ClCompile Include="..\shared\src\random_in.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\random.h">
+    <ClInclude Include="src\tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\tests.h">
+    <ClInclude Include="..\shared\include\random_in.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

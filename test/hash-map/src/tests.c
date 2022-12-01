@@ -4,7 +4,7 @@
 /******************************************************************************/
 
 #include "tests.h"
-#include "random.h"
+#include <random_in.h>
 
 #include <stdio.h>
 #include <inttypes.h>
