@@ -23,8 +23,13 @@ endif
 endif
 endif
 
-ifneq ($(firstword $(filter %-mingw32 %-cygwin,$(DUMPMACHINE))),)
+ifeq ($(firstword $(filter %-mingw32 %-cygwin,$(DUMPMACHINE))),)
+  DLL_LDFLAGS = -fPIC -shared
+  DLL_SUFFIX := .so
+else
+  DLL_LDFLAGS = -shared -Wl,--out-implib,$@.a
   EXE_SUFFIX := .exe
+  DLL_SUFFIX := .dll
 ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
   XLDFLAGS += -Wl,--large-address-aware
 endif
