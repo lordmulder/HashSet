@@ -1,11 +1,11 @@
 Introduction
 ============
 
-**LibHashSet** is a simple *hash set* implementation for C99. It uses open addressing and double hashing.
+**LibHashSet** is a *hash set* and *hash map* implementation for C99. It uses open addressing and double hashing.
 
-At this time, the *only* types of elements supported are `uint32_t` and `uint64_t`.
+At this time, the *only* types of elements supported are `uint16_t`, `uint32_t` and `uint64_t`.
 
-This hash set implementation has been tested to *efficiently* handle several billions of items 😏
+This hash set implementation has successfully been tested to *efficiently* handle several billions of items 😏
 
 
 Getting Started
@@ -19,7 +19,7 @@ Here is a simple example of how to use LibHashSet in your application:
 
 int main(void)
 {
-	uint64_t value;
+	uint64_t item;
 	uintptr_t cursor = 0U;
 
 	/* create new hash set instance */
@@ -47,9 +47,9 @@ int main(void)
 	printf("Total number of items: %zu\n\n", hash_set_size64(hash_set));
 
 	/* print all items in the set */
-	while (hash_set_iterate64(hash_set, &cursor, &value) == 0)
+	while (hash_set_iterate64(hash_set, &cursor, &item) == 0)
 	{
-		printf("Item: %016llX\n", value);
+		printf("Item: %016llX\n", item);
 	}
 
 	/* destroy the hash set, when it is no longer needed! */
@@ -62,23 +62,33 @@ int main(void)
 API Reference
 =============
 
-This section describes the LibHashSet programming interface, as declared in the `<hash_set.h>` header file.
+This section describes the LibHashSet programming interface. The functions for managing *hash sets* are declared in `<hash_set.h>`, whereas the functions for managing to *hash maps* are declared  and `<hash_map.h>`.
 
-LibHashSet supports sets containing values of type `uint32_t` or `uint64_t`. For each value type, separate functions are provided. The functions for `uint32_t`- and `uint64_t`-based hash sets can be distinguished by the suffix `…32` and `…64`, respectively. In the following, the functions are described in their "generic" (`value_t`) form.
+LibHashSet supports sets and maps containing elements of different integral types. For each element type, separate functions are provided. The functions for `uint16_t`, `uint32_t` and `uint64_t` can be distinguished by the suffix `…16`, `…32` and `…64`, respectively. In the following, the functions are described in their "generic" form.
 
-***Note:*** On Microsoft Windows, when using LibHashSet as a "shared" library (DLL), the macro `HASHSET_DLL` must be defined *before* including `<hash_set.h>`! This is **not** required or allowed when using the "static" library.
+***Note:*** On Microsoft Windows (Visual C++), when using LibHashSet as a "shared" library (DLL file), the macro `HASHSET_DLL` must be defined *before* including the `<hash_set.h>` or `<hash_map.h>` header files!
 
 Types
 -----
 
 ### hash_set_t
 
-A `struct` that represents a hash set instance. Instances can be allocated and de-allocated via the [hash_set_create()](#hash_set_create) and [hash_set_destroy()](#hash_set_destroy) functions, respectively.
+A `struct` that represents a LibHashSet *hash set* instance. Hash set instances can be allocated and de-allocated via the [hash_set_create()](#hash_set_create) and [hash_set_destroy()](#hash_set_destroy) functions, respectively.
 
-***Note:*** Application code shall treat this `struct` as opaque!
+***Note:*** Application code shall treat this `struct` as opaque. The internals may change in future versions!
 
 ```C
 typedef struct _hash_set hash_set_t;
+```
+
+### hash_map_t
+
+A `struct` that represents a LibHashSet *hash map* instance. Hash map instances can be allocated and de-allocated via the [hash_map_create()](#hash_map_create) and [hash_map_destroy()](#hash_map_destroy) functions, respectively.
+
+***Note:*** Application code shall treat this `struct` as opaque! The internals may change in future versions!
+
+```C
+typedef struct _hash_map hash_map_t;
 ```
 
 Globals
@@ -103,8 +113,10 @@ extern const char *const HASHSET_BUILD_DATE;
 extern const char *const HASHSET_BUILD_TIME;
 ```
 
-Functions
----------
+Set Functions
+-------------
+
+This section describes all functions for managing `hash_set_t` instances.
 
 ### hash_set_create()
 
@@ -120,10 +132,10 @@ hash_set_t *hash_set_create(
 #### Parameters
 
 * `initial_capacity`  
-  The initial capacity of the hash set (number of values). The given value will be rounded to the next power of two. If the number of values (keys) to be inserted into the hash set can be estimated beforehand, then the initial capacity should be adjusted accordingly to avoid unnecessary re-allocations. In any case, the hash set will be able to grow dynamically as needed. If this parameter is set to *zero*, the the *default* initial capacity (8192) is used.
+  The initial capacity of the hash set (number of items). The given count will be rounded to the next power of two. If the number of items to be inserted into the hash set can be estimated beforehand, then the initial capacity should be adjusted accordingly to avoid unnecessary re-allocations. In any case, the hash set will be able to grow dynamically as needed. If this parameter is set to *zero*, the the *default* initial capacity (8192) is used.
 
 * `load_factor`  
-  The load factor to be applied to the hash set. The given value will be clipped to the **0.1** to **1.0** range. Generally, the default load factor (0.8) offers a good trade-off between performance and memory usage. Higher values decrease the memory overhead, but may increase the time required for insert/lookup operations when the hash set is almost completely filled. If this parameter is less than or equal to *zero*, the *default* load factor is used.
+  The load factor to be applied to the hash set. The given load factor will be clipped to the **0.1** to **1.0** range. Generally, the default load factor (0.8) offers a good trade-off between performance and memory usage. Higher load factors decrease the memory overhead, but also may increase the time required for insert, lookup and remove operations. If this parameter is less than or equal to *zero*, the *default* load factor is used.
 
 #### Return value
 
@@ -149,14 +161,14 @@ void hash_set_destroy(
 
 ### hash_set_insert()
 
-Tries to insert the given value into the hash set. The operation fails, if the set already contains the given value.
+Tries to insert the given item into the hash set. The operation fails, if the set already contains the given item.
 
-***Note:*** If the value is actually inserted, then the hash set *may* need to grow.
+***Note:*** If the item is actually inserted, then the hash set *may* need to grow.
 
 ```C
 errno_t hash_set_insert(
 	hash_set_t *const instance,
-	const value_t value
+	const value_t item
 );
 ```
 
@@ -165,8 +177,8 @@ errno_t hash_set_insert(
 * `instance`  
   A pointer to the hash set instance to be modified, as returned by the [hash_set_create()](#hash_set_create) function.
 
-* `value`  
-  The value (key) to be inserted into the hash set.
+* `item`  
+  The item to be inserted into the hash set.
 
 #### Return value
 
@@ -176,24 +188,24 @@ On success, this function returns *zero*. On error, the appropriate error code i
   An invalid argument was given, e.g. `instance` was set to `NULL`.
 
 * `EEXIST`  
-  The given value (key) was *not* inserted into the hash set (again), because that value was already present.
+  The given item was *not* inserted into the hash set (again), because it was already present.
 
 * `ENOMEM`  
-  The value could *not* be inserted, because the required amount of memory could *not* be allocated.
+  The item could *not* be inserted, because the required amount of memory could *not* be allocated.
 
 * `EFAULT`  
   Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
 
 ### hash_set_remove()
 
-Tries to remove the given value from the hash set. The operation fails, if the set does *not* contain the given value.
+Tries to remove the given item from the hash set. The operation fails, if the set does *not* contain the given item.
 
-***Note:*** If the value is actually removed, then the hash set *may* shrink.
+***Note:*** If the item is actually removed, then the hash set *may* shrink.
 
 ```C
 errno_t hash_set_remove(
 	hash_set_t *const instance,
-	const value_t value
+	const value_t item
 );
 ```
 
@@ -202,8 +214,8 @@ errno_t hash_set_remove(
 * `instance`  
   A pointer to the hash set instance to be modified, as returned by the [hash_set_create()](#hash_set_create) function.
 
-* `value`  
-  The value (key) to be removed from the hash set.
+* `item`  
+  The item to be removed from the hash set.
 
 #### Return value
 
@@ -213,7 +225,7 @@ On success, this function returns *zero*. On error, the appropriate error code i
   An invalid argument was given, e.g. `instance` was set to `NULL`.
 
 * `ENOENT`  
-  The given value (key) could *not* be removed from the hash set, because *no* such value was present.
+  The given item could *not* be removed from the hash set, because *no* such item was present.
 
 * `EFAULT`  
   Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
@@ -247,12 +259,12 @@ On success, this function returns *zero*. On error, the appropriate error code i
 
 ### hash_set_contains()
 
-Tests whether the hash set contains a value. The operation fails, if the set does *not* contain the given value.
+Tests whether the hash set contains an item. The operation fails, if the set does *not* contain the given item.
 
 ```C
 errno_t hash_set_contains(
 	const hash_set_t *const instance,
-	const value_t value
+	const value_t item
 );
 ```
 
@@ -261,8 +273,8 @@ errno_t hash_set_contains(
 * `instance`  
   A pointer to the hash set instance to be examined, as returned by the [hash_set_create()](#hash_set_create) function.
 
-* `value`  
-  The value (key) to be searched in the hash set.
+* `item`  
+  The item to be searched in the hash set.
 
 #### Return value
 
@@ -272,24 +284,24 @@ On success, this function returns *zero*. On error, the appropriate error code i
   An invalid argument was given, e.g. `instance` was set to `NULL`.
 
 * `ENOENT`  
-  The hash set does *not* contain the specified value (key).
+  The hash set does *not* contain the specified item.
 
 * `EFAULT`  
   Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
 
 ### hash_set_iterate()
 
-Iterates through the values stored in the hash set. The elements are iterated in **no** particular order.
+Iterates through the items stored in the hash set. The elements are iterated in **no** particular order.
 
-This function returns one value at a time. It should be called repeatedly, until the end of the set is encountered.
+This function returns one item at a time. It should be called *repeatedly*, until the end of the set is encountered.
 
-***Warning:*** The result is undefined, if the set is modified while the iteration is in progress!
+***Warning:*** The result is *undefined*, if the set is modified while the iteration is in progress!
 
 ```C
 errno_t hash_set_iterate(
 	const hash_set_t *const instance,
-	uintptr_t *const cursor,
-	value_t *const value
+	size_t *const cursor,
+	value_t *const item
 );
 ```
 
@@ -299,12 +311,12 @@ errno_t hash_set_iterate(
   A pointer to the hash set instance to be examined, as returned by the [hash_set_create()](#hash_set_create) function.
 
 * `cursor`  
-  A pointer to a variable of type `uintptr_t` where the current iterator state (position) is saved.  
+  A pointer to a variable of type `size_t` where the current iterator state (position) is saved.  
   This variable **must** be initialized to the value `0U`, by the calling application, prior to the the *first* invocation!  
-  Each invocation will update the value of `*cursor`; the value **shall not** be altered by the application.
+  Each invocation will update the value of `*cursor`. This value **shall not** be altered by the application.
 
-* `value`  
-  A pointer to a variable of type `uint32_t` or `uint64_t` where the next value in the set is stored on success.  
+* `item`  
+  A pointer to a variable of type `value_t` where the next item in the set is stored on success.  
   The content of the variable should be considered *undefined*, if the invocation has failed.
 
 #### Return value
@@ -315,14 +327,14 @@ On success, this function returns *zero*. On error, the appropriate error code i
   An invalid argument was given, e.g. `instance` was set to `NULL`.
 
 * `ENOENT`  
-  No more values. The end of the set has been encountered.
+  No more items. The end of the set has been encountered.
 
 * `EFAULT`  
   Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
 
 ### hash_set_size()
 
-Returns the current number of values in the hash set.
+Returns the current number of (distinct) items in the hash set.
 
 ```C
 size_t hash_set_size(
@@ -337,7 +349,7 @@ size_t hash_set_size(
 
 #### Return value
 
-This function returns the number of values in the hash set.
+This function returns the number of (distinct) items in the hash set.
 
 ### hash_set_info()
 
@@ -391,7 +403,7 @@ Dump the current status and content of all "slots" of the hash set.
 ```C
 errno_t hash_set_dump(
 	const hash_set_t *const instance,
-	int (*callback)(const size_t index, const char status, const value_t value)
+	const hash_map_callback_t callback
 );
 ```
 
@@ -403,13 +415,16 @@ errno_t hash_set_dump(
 * `callback`  
   A pointer to the callback function that will be invoked once for every "slot" in the hash set.
 
+  The callback function is defined as follows:
   ```C
-  int callback(
+  typedef int (*hash_map_callback_t)(
   	const size_t index,
   	const char status,
+  	const value_t key,
   	const value_t value
   );
   ```
+
   ##### Parameters
 
   * `index`  
@@ -421,8 +436,8 @@ errno_t hash_set_dump(
     - `'v'` &ndash; the slot is *valid*
     - `'d'` &ndash; the slot is *deleted*
 
-  * `value`  
-    The value that is stored at the current "slot" index.
+  * `item`  
+    The item that is stored at the current "slot" index.
 
   ##### Return value
 
@@ -444,9 +459,9 @@ On success, this function returns *zero*. On error, the appropriate error code i
 Thread Safety
 -------------
 
-LibHashSet is ***thread-safe***, in the sense that all public functions operate *exclusively* on the given `hash_set_t` instance; there is **no** implicit shared "global" state. This means that **no** synchronization is required in multi-threaded applications, provided that each `hash_set_t` instance is created and accessed only by a *single* thread.
+LibHashSet is ***thread-safe***, in the sense that all public functions operate *exclusively* on the given `hash_set_t` or `hash_map_t` instance; there is **no** implicit shared "global" state. This means that **no** synchronization is required in multi-threaded applications, provided that each instance is created and accessed only by a ***single*** thread.
 
-However, LibHashSet does ***nothing*** to synchronize access to a particular `hash_set_t` instance! Consequently, in situations where the *same* `hash_set_t` instance needs to be shared across *multiple* concurrent threads, the calling application is responsible for serializing all access to the "shared" instance, e.g. by using a [*mutex*](https://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_lock.html) lock!
+However, LibHashSet does **nothing** to synchronize access to a particular `hash_set_t` or `hash_map_t` instance! Consequently, in situations where the *same* instance needs to be shared across *multiple* concurrent threads, the calling application is responsible for serializing all access to the "shared" instance, e.g. by using a [*mutex*](https://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_lock.html) lock!
 
 
 License

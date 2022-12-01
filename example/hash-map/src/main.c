@@ -4,6 +4,7 @@
 /******************************************************************************/
 
 #include <hash_map.h>
+#include <hash_set.h>
 #include <stdio.h>
 #include <inttypes.h>
 #include "input.h"

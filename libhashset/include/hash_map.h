@@ -27,12 +27,25 @@ extern "C" {
 typedef int errno_t;
 #endif
 
+/* ------------------------------------------------- */
+/* Globals                                           */
+/* ------------------------------------------------- */
+
+#ifndef _LIBHASHSET_GLOBALS_DEFINED
+#define _LIBHASHSET_GLOBALS_DEFINED
+
 HASHSET_API const uint16_t HASHSET_VERSION_MAJOR;
 HASHSET_API const uint16_t HASHSET_VERSION_MINOR;
 HASHSET_API const uint16_t HASHSET_VERSION_PATCH;
 
-HASHSET_API const char *const HASHSET_BUILD_DATE;
-HASHSET_API const char *const HASHSET_BUILD_TIME;
+HASHSET_API const char* const HASHSET_BUILD_DATE;
+HASHSET_API const char* const HASHSET_BUILD_TIME;
+
+#endif /*_LIBHASHSET_GLOBALS_DEFINED*/
+
+/* ------------------------------------------------- */
+/* Types                                             */
+/* ------------------------------------------------- */
 
 struct _hash_map16;
 struct _hash_map32;
@@ -41,6 +54,14 @@ struct _hash_map64;
 typedef struct _hash_map16 hash_map16_t;
 typedef struct _hash_map32 hash_map32_t;
 typedef struct _hash_map64 hash_map64_t;
+
+typedef int (*hash_map_callback16_t)(const size_t index, const char status, const uint16_t key, const uint16_t value);
+typedef int (*hash_map_callback32_t)(const size_t index, const char status, const uint32_t key, const uint32_t value);
+typedef int (*hash_map_callback64_t)(const size_t index, const char status, const uint64_t key, const uint64_t value);
+
+/* ------------------------------------------------- */
+/* Functions                                         */
+/* ------------------------------------------------- */
 
 HASHSET_API hash_map16_t *hash_map_create16(const size_t initial_capacity, const double load_factor);
 HASHSET_API hash_map32_t *hash_map_create32(const size_t initial_capacity, const double load_factor);
@@ -81,10 +102,6 @@ HASHSET_API size_t hash_map_size64(const hash_map64_t *const instance);
 HASHSET_API errno_t hash_map_info16(const hash_map16_t *const instance, size_t* const capacity, size_t* const valid, size_t* const deleted, size_t* const limit);
 HASHSET_API errno_t hash_map_info32(const hash_map32_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
 HASHSET_API errno_t hash_map_info64(const hash_map64_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit);
-
-typedef int (*hash_map_callback16_t)(const size_t index, const char status, const uint32_t key, const uint16_t value);
-typedef int (*hash_map_callback32_t)(const size_t index, const char status, const uint32_t key, const uint32_t value);
-typedef int (*hash_map_callback64_t)(const size_t index, const char status, const uint64_t key, const uint64_t value);
 
 HASHSET_API errno_t hash_map_dump16(const hash_map16_t *const instance, const hash_map_callback16_t callback);
 HASHSET_API errno_t hash_map_dump32(const hash_map32_t *const instance, const hash_map_callback32_t callback);
