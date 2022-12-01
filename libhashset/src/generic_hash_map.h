@@ -378,14 +378,8 @@ errno_t DECLARE(hash_map_iterate)(const hash_map_t *const instance, size_t *cons
 	{
 		if (IS_VALID(instance->data, index))
 		{
-			if (key)
-			{
-				*key = instance->data.keys[index];
-			}
-			if (value)
-			{
-				*value = instance->data.values[index];
-			}
+			SAFE_SET(key, instance->data.keys[index]);
+			SAFE_SET(value, instance->data.values[index]);
 			*cursor = index + 1U;
 			return 0;
 		}
@@ -407,22 +401,10 @@ errno_t DECLARE(hash_map_info)(const hash_map_t *const instance, size_t *const c
 		return EINVAL;
 	}
 
-	if (capacity)
-	{
-		*capacity = instance->data.capacity;
-	}
-	if (valid)
-	{
-		*valid = instance->valid;
-	}
-	if (deleted)
-	{
-		*deleted = instance->deleted;
-	}
-	if (limit)
-	{
-		*limit = instance->limit;
-	}
+	SAFE_SET(capacity, instance->data.capacity);
+	SAFE_SET(valid, instance->valid);
+	SAFE_SET(deleted,instance->deleted);
+	SAFE_SET(limit, instance->limit);
 
 	return 0;
 }
