@@ -17,7 +17,7 @@
 } \
 while(0)
 
-#define SEED ((uint64_t)time(NULL))
+#define SEED ((uint32_t)time(NULL))
 
 /* ========================================================================= */
 /* MAIN                                                                      */

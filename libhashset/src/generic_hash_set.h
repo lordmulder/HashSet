@@ -14,8 +14,6 @@
 
 #define DECLARE(X) CONCAT(X,NAME_SUFFIX)
 
-static const uint64_t SEED_VALUE = UINT64_C(0xFE8BD3EF0C09CA67);
-
 /* ------------------------------------------------- */
 /* Data types                                        */
 /* ------------------------------------------------- */
@@ -32,7 +30,7 @@ struct DECLARE(_hash_set)
 {
 	double load_factor;
 	size_t valid, deleted, limit;
-	value_t tweak;
+	uint32_t tweak;
 	hash_data_t data;
 };
 
@@ -86,14 +84,12 @@ static INLINE void free_data(hash_data_t *const data)
 
 #define INDEX(X) ((size_t)((X) % data->capacity))
 
-static INLINE bool_t find_slot(const hash_data_t *const data, const value_t tweak, const value_t item, size_t *const index_out, bool_t *const reused_out)
+static INLINE bool_t find_slot(const hash_data_t *const data, uint64_t tweak, const value_t item, size_t *const index_out, bool_t *const reused_out)
 {
-	uint64_t loop = 0U;
-	bool_t is_saved = FALSE;
 	size_t index;
-	const value_t base = item + tweak;
+	bool_t is_saved = FALSE;
 
-	for (index = INDEX(hash_compute(loop, base)); get_flag(data->used, index); index = INDEX(hash_compute(++loop, base)))
+	for (index = INDEX(hash_compute(tweak, item)); get_flag(data->used, index); index = INDEX(hash_compute(++tweak, item)))
 	{
 		if (get_flag(data->deleted, index))
 		{
@@ -193,7 +189,7 @@ static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_c
 /* PUBLIC FUNCTIONS                                                          */
 /* ========================================================================= */
 
-hash_set_t *DECLARE(hash_set_create)(const size_t initial_capacity, const double load_factor, const uint64_t seed)
+hash_set_t *DECLARE(hash_set_create)(const size_t initial_capacity, const double load_factor, const uint32_t seed)
 {
 	hash_set_t *instance = (hash_set_t*) calloc(1U, sizeof(hash_set_t));
 	if (!instance)
@@ -208,7 +204,7 @@ hash_set_t *DECLARE(hash_set_create)(const size_t initial_capacity, const double
 	}
 
 	instance->load_factor = (load_factor > DBL_EPSILON) ? BOUND(0.125, load_factor, 1.0) : DEFAULT_LOADFCTR;
-	instance->tweak = (value_t) hash_compute(seed, SEED_VALUE);
+	instance->tweak = (seed ^ SEED) & UINT32_C(0x7FFFFFFF);
 	instance->limit = compute_limit(instance->data.capacity, instance->load_factor);
 
 	return instance;

@@ -64,9 +64,9 @@ typedef int (*hash_set_callback64_t)(const size_t index, const char status, cons
 /* Functions                                         */
 /* ------------------------------------------------- */
 
-HASHSET_API hash_set16_t *hash_set_create16(const size_t initial_capacity, const double load_factor, const uint64_t seed);
-HASHSET_API hash_set32_t *hash_set_create32(const size_t initial_capacity, const double load_factor, const uint64_t seed);
-HASHSET_API hash_set64_t *hash_set_create64(const size_t initial_capacity, const double load_factor, const uint64_t seed);
+HASHSET_API hash_set16_t *hash_set_create16(const size_t initial_capacity, const double load_factor, const uint32_t seed);
+HASHSET_API hash_set32_t *hash_set_create32(const size_t initial_capacity, const double load_factor, const uint32_t seed);
+HASHSET_API hash_set64_t *hash_set_create64(const size_t initial_capacity, const double load_factor, const uint32_t seed);
 
 HASHSET_API void hash_set_destroy16(hash_set16_t *const instance);
 HASHSET_API void hash_set_destroy32(hash_set32_t *const instance);

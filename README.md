@@ -18,7 +18,7 @@ Here is a simple example of how to use LibHashSet in your application:
 #include <time.h>
 #include <stdio.h>
 
-#define SEED ((uint64_t)time(NULL))
+#define SEED ((uint32_t)time(NULL))
 
 int main(void)
 {
@@ -129,7 +129,7 @@ Allocates a new hash set instance. The new hash set instance is empty initially.
 hash_set_t *hash_set_create(
 	const size_t initial_capacity,
 	const double load_factor,
-	const uint64_t seed
+	const uint32_t seed
 );
 ```
 
@@ -476,7 +476,7 @@ Allocates a new hash map instance. The new hash map instance is empty initially.
 hash_map_t *hash_map_create(
 	const size_t initial_capacity,
 	const double load_factor,
-	const uint64_t seed
+	const uint32_t seed
 );
 ```
 
