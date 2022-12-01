@@ -23,8 +23,9 @@
 extern "C" {
 #endif
 
-#if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(_ERRNO_T_DEFINED)
+#if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(_LIBHASHSET_ERRNO_DEFINED)
 typedef int errno_t;
+#define _LIBHASHSET_ERRNO_DEFINED 1
 #endif
 
 /* ------------------------------------------------- */

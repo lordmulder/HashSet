@@ -62,7 +62,7 @@ int main(void)
 API Reference
 =============
 
-This section describes the LibHashSet programming interface. The functions for managing *hash sets* are declared in `<hash_set.h>`, whereas the functions for managing to *hash maps* are declared  and `<hash_map.h>`.
+This section describes the LibHashSet programming interface. The functions for managing *hash sets* are declared in `<hash_set.h>`, whereas the functions for managing to *hash maps* are declared in `<hash_map.h>`.
 
 LibHashSet supports sets and maps containing elements of different integral types. For each element type, separate functions are provided. The functions for `uint16_t`, `uint32_t` and `uint64_t` can be distinguished by the suffix `…16`, `…32` and `…64`, respectively. In the following, the functions are described in their "generic" form.
 
