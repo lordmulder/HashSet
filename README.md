@@ -1,7 +1,7 @@
 Introduction
 ============
 
-**LibHashSet** is a *hash set* and *hash map* implementation for C99. It uses open addressing and double hashing.
+**LibHashSet** is a [*hash set*](https://en.wikipedia.org/wiki/Hash_table) and [*hash map*](https://en.wikipedia.org/wiki/Hash_table) implementation for C99. It uses open addressing and double hashing.
 
 At this time, the *only* types of elements supported are `uint16_t`, `uint32_t` and `uint64_t`.
 
@@ -15,7 +15,10 @@ Here is a simple example of how to use LibHashSet in your application:
 
 ```C
 #include <hash_set.h>
+#include <time.h>
 #include <stdio.h>
+
+#define SEED ((uint64_t)time(NULL))
 
 int main(void)
 {
@@ -23,7 +26,7 @@ int main(void)
 	uintptr_t cursor = 0U;
 
 	/* create new hash set instance */
-	hash_set64_t* const hash_set = hash_set_create64(0U, -1.0);
+	hash_set64_t* const hash_set = hash_set_create64(0U, -1.0, SEED);
 	if (!hash_set)
 	{
 		fputs("Allocation has failed!\n", stderr);
@@ -125,7 +128,8 @@ Allocates a new hash set instance. The new hash set instance is empty initially.
 ```C
 hash_set_t *hash_set_create(
 	const size_t initial_capacity,
-	const double load_factor
+	const double load_factor,
+	const uint64_t seed
 );
 ```
 
@@ -136,6 +140,9 @@ hash_set_t *hash_set_create(
 
 * `load_factor`  
   The load factor to be applied to the hash set. The given load factor will be clipped to the **0.1** to **1.0** range. Generally, the default load factor (0.8) offers a good trade-off between performance and memory usage. Higher load factors decrease the memory overhead, but also may increase the time required for insert, lookup and remove operations. If this parameter is less than or equal to *zero*, the *default* load factor is used.
+
+* `seed`  
+  The "seed" value that is used to tweak the internal hash computation. The application should set this parameter to a value that is hard to predict and that is unlikely to repeat (e.g., a high-resolution timer is suitable here).
 
 #### Return value
 
@@ -468,7 +475,8 @@ Allocates a new hash map instance. The new hash map instance is empty initially.
 ```C
 hash_map_t *hash_map_create(
 	const size_t initial_capacity,
-	const double load_factor
+	const double load_factor,
+	const uint64_t seed
 );
 ```
 
@@ -479,6 +487,9 @@ hash_map_t *hash_map_create(
 
 * `load_factor`  
   The load factor to be applied to the hash map. The given load factor will be clipped to the **0.1** to **1.0** range. Generally, the default load factor (0.8) offers a good trade-off between performance and memory usage. Higher load factors decrease the memory overhead, but also may increase the time required for insert, lookup and remove operations. If this parameter is less than or equal to *zero*, the *default* load factor is used.
+
+* `seed`  
+  The "seed" value that is used to tweak the internal hash computation. The application should set this parameter to a value that is hard to predict and that is unlikely to repeat (e.g., a high-resolution timer is suitable here).
 
 #### Return value
 

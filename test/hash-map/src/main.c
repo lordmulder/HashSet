@@ -6,6 +6,7 @@
 #include "tests.h"
 #include <stdio.h>
 #include <inttypes.h>
+#include <time.h>
 
 #define RUN_TEST_CASE(X) do \
 { \
@@ -15,6 +16,8 @@
 	} \
 } \
 while(0)
+
+#define SEED ((uint64_t)time(NULL))
 
 /* ========================================================================= */
 /* MAIN                                                                      */
@@ -27,7 +30,7 @@ int main(void)
 	printf("LibHashSet Hash-Map Test v%" PRIu16 ".%" PRIu16 ".%" PRIu16 " [%s]\n\n",
 		HASHSET_VERSION_MAJOR, HASHSET_VERSION_MINOR, HASHSET_VERSION_PATCH, HASHSET_BUILD_DATE);
 
-	hash_set = hash_map_create64(0U, -1.0);
+	hash_set = hash_map_create64(0U, -1.0, SEED);
 	if (!hash_set)
 	{
 		puts("Allocation has failed!");
