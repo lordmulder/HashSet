@@ -47,5 +47,11 @@
     <ClCompile Include="src\hash_map_32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\hash_map_16.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hash_set_16.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
