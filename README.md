@@ -136,7 +136,7 @@ hash_set_t *hash_set_create(
   The initial capacity of the hash set (number of items). The given count will be rounded to the next power of two. If the number of items to be inserted into the hash set can be estimated beforehand, then the initial capacity should be adjusted accordingly to avoid unnecessary re-allocations. In any case, the hash set will be able to grow dynamically as needed. If this parameter is set to *zero*, the the *default* initial capacity (8192) is used.
 
 * `load_factor`  
-  The load factor to be applied to the hash set. The given load factor will be clipped to the **0.1** to **1.0** range. Generally, the default load factor (0.8) offers a good trade-off between performance and memory usage. Higher load factors decrease the memory overhead, but also may increase the time required for insert, lookup and remove operations. If this parameter is less than or equal to *zero*, the *default* load factor is used.
+  The load factor to be applied to the hash set. The given load factor will be clipped to the **0.1** to **1.0** range. Generally, the default load factor (0.75) offers a good trade-off between performance and memory usage. Higher load factors decrease the memory overhead, but also may increase the time required for insert, lookup and remove operations. If this parameter is less than or equal to *zero*, the *default* load factor is used.
 
 * `seed`  
   The "seed" value that is used to tweak the internal hash computation. The application should set this parameter to a value that is hard to predict and that is unlikely to repeat (e.g., a high-resolution timer is suitable here).
@@ -483,7 +483,7 @@ hash_map_t *hash_map_create(
   The initial capacity of the hash map. The given count will be rounded to the next power of two. If the number of key-value pairs to be inserted into the hash map can be estimated beforehand, then the initial capacity should be adjusted accordingly to avoid unnecessary re-allocations. In any case, the hash map will be able to grow dynamically as needed. If this parameter is map to *zero*, the the *default* initial capacity (8192) is used.
 
 * `load_factor`  
-  The load factor to be applied to the hash map. The given load factor will be clipped to the **0.1** to **1.0** range. Generally, the default load factor (0.8) offers a good trade-off between performance and memory usage. Higher load factors decrease the memory overhead, but also may increase the time required for insert, lookup and remove operations. If this parameter is less than or equal to *zero*, the *default* load factor is used.
+  The load factor to be applied to the hash map. The given load factor will be clipped to the **0.1** to **1.0** range. Generally, the default load factor (0.75) offers a good trade-off between performance and memory usage. Higher load factors decrease the memory overhead, but also may increase the time required for insert, lookup and remove operations. If this parameter is less than or equal to *zero*, the *default* load factor is used.
 
 * `seed`  
   The "seed" value that is used to tweak the internal hash computation. The application should set this parameter to a value that is hard to predict and that is unlikely to repeat (e.g., a high-resolution timer is suitable here).

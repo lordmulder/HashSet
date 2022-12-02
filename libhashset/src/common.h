@@ -30,7 +30,7 @@ typedef int bool_t;
 
 static const size_t MINIMUM_CAPACITY =  128U;
 static const size_t DEFAULT_CAPACITY = 8192U;
-static const double DEFAULT_LOADFCTR =   0.8;
+static const double DEFAULT_LOADFCTR =  0.75;
 
 #define SEED UINT32_C(0x6A09E667)
 
