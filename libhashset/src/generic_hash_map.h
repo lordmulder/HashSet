@@ -30,7 +30,7 @@ struct DECLARE(_hash_map)
 {
 	double load_factor;
 	size_t valid, deleted, limit;
-	uint32_t tweak;
+	uint64_t basis;
 	hash_data_t data;
 };
 
@@ -94,12 +94,13 @@ static INLINE void free_data(hash_data_t *const data)
 
 #define INDEX(X) ((size_t)((X) % data->capacity))
 
-static INLINE bool_t find_slot(const hash_data_t *const data, uint64_t tweak, const value_t key, size_t *const index_out, bool_t *const reused_out)
+static INLINE bool_t find_slot(const hash_data_t *const data, const uint64_t basis, const value_t key, size_t *const index_out, bool_t *const reused_out)
 {
 	size_t index;
 	bool_t is_saved = FALSE;
+	uint64_t loop = 0U;
 
-	for (index = INDEX(hash_compute(tweak, key)); get_flag(data->used, index); index = INDEX(hash_compute(++tweak, key)))
+	for (index = INDEX(hash_compute(basis, loop, key)); get_flag(data->used, index); index = INDEX(hash_compute(basis, ++loop, key)))
 	{
 		if (get_flag(data->deleted, index))
 		{
@@ -179,7 +180,7 @@ static INLINE errno_t rebuild_map(hash_map_t *const instance, const size_t new_c
 		if (IS_VALID(instance->data, k))
 		{
 			const value_t key = instance->data.keys[k], value = instance->data.values[k];
-			if (find_slot(&temp, instance->tweak, key, &index, NULL))
+			if (find_slot(&temp, instance->basis, key, &index, NULL))
 			{
 				free_data(&temp);
 				return EFAULT; /*this should never happen!*/
@@ -200,7 +201,7 @@ static INLINE errno_t rebuild_map(hash_map_t *const instance, const size_t new_c
 /* PUBLIC FUNCTIONS                                                          */
 /* ========================================================================= */
 
-hash_map_t *DECLARE(hash_map_create)(const size_t initial_capacity, const double load_factor, const uint32_t seed)
+hash_map_t *DECLARE(hash_map_create)(const size_t initial_capacity, const double load_factor, const uint64_t seed)
 {
 	hash_map_t *instance = (hash_map_t*) calloc(1U, sizeof(hash_map_t));
 	if (!instance)
@@ -215,7 +216,7 @@ hash_map_t *DECLARE(hash_map_create)(const size_t initial_capacity, const double
 	}
 
 	instance->load_factor = (load_factor > DBL_EPSILON) ? BOUND(0.125, load_factor, 1.0) : DEFAULT_LOADFCTR;
-	instance->tweak = (seed ^ SEED) & UINT32_C(0x7FFFFFFF);
+	instance->basis = hash_initialize(seed);
 	instance->limit = compute_limit(instance->data.capacity, instance->load_factor);
 
 	return instance;
@@ -241,7 +242,7 @@ errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, 
 		return EINVAL;
 	}
 
-	if (find_slot(&instance->data, instance->tweak, key, &index, &slot_reused))
+	if (find_slot(&instance->data, instance->basis, key, &index, &slot_reused))
 	{
 		instance->data.values[index] = value;
 		return EEXIST;
@@ -254,7 +255,7 @@ errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, 
 		{
 			return error;
 		}
-		if (find_slot(&instance->data, instance->tweak, key, &index, &slot_reused))
+		if (find_slot(&instance->data, instance->basis, key, &index, &slot_reused))
 		{
 			return EFAULT;
 		}
@@ -278,7 +279,7 @@ errno_t DECLARE(hash_map_contains)(const hash_map_t *const instance, const value
 		return EINVAL;
 	}
 
-	return (instance->valid && find_slot(&instance->data, instance->tweak, key, NULL, NULL)) ? 0 : ENOENT;
+	return (instance->valid && find_slot(&instance->data, instance->basis, key, NULL, NULL)) ? 0 : ENOENT;
 }
 
 errno_t DECLARE(hash_map_get)(const hash_map_t *const instance, const value_t key, value_t *const value)
@@ -290,7 +291,7 @@ errno_t DECLARE(hash_map_get)(const hash_map_t *const instance, const value_t ke
 		return EINVAL;
 	}
 
-	if (!find_slot(&instance->data, instance->tweak, key, &index, NULL))
+	if (!find_slot(&instance->data, instance->basis, key, &index, NULL))
 	{
 		return ENOENT;
 	}
@@ -308,7 +309,7 @@ errno_t DECLARE(hash_map_remove)(hash_map_t *const instance, const value_t key)
 		return EINVAL;
 	}
 
-	if ((!instance->valid) || (!find_slot(&instance->data, instance->tweak, key, &index, NULL)))
+	if ((!instance->valid) || (!find_slot(&instance->data, instance->basis, key, &index, NULL)))
 	{
 		return ENOENT;
 	}

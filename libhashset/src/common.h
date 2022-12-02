@@ -116,9 +116,15 @@ static FORCE_INLINE void hash_update(uint64_t *const hash, uint64_t value)
 	while (value >>= CHAR_BIT);
 }
 
-static INLINE uint64_t hash_compute(const uint64_t i, const uint64_t value)
+static INLINE uint64_t hash_initialize(const uint64_t seed)
 {
 	uint64_t hash = UINT64_C(14695981039346656037);
+	hash_update(&hash, seed);
+	return hash;
+}
+
+static INLINE uint64_t hash_compute(uint64_t hash, const uint64_t i, const uint64_t value)
+{
 	hash_update(&hash, i);
 	hash_update(&hash, value);
 	return hash;
