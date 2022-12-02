@@ -6,10 +6,7 @@
 #include <hash_map.h>
 #include <stdio.h>
 #include <inttypes.h>
-#include <time.h>
 #include "input.h"
-
-#define SEED ((uint32_t)time(NULL))
 
 /* ========================================================================= */
 /* MAIN                                                                      */
@@ -26,7 +23,7 @@ int main(void)
 		HASHSET_VERSION_MAJOR, HASHSET_VERSION_MINOR, HASHSET_VERSION_PATCH, HASHSET_BUILD_DATE);
 
 	/* create new hash map instance */
-	hash_map = hash_map_create64(0U, -1.0, SEED);
+	hash_map = hash_map_create64(0U, -1.0, 42U);
 	if (!hash_map)
 	{
 		fputs("Allocation has failed!\n", stderr);

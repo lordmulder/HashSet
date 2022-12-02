@@ -15,10 +15,7 @@ Here is a simple example of how to use LibHashSet in your application:
 
 ```C
 #include <hash_set.h>
-#include <time.h>
 #include <stdio.h>
-
-#define SEED ((uint32_t)time(NULL))
 
 int main(void)
 {
@@ -26,7 +23,7 @@ int main(void)
 	uintptr_t cursor = 0U;
 
 	/* create new hash set instance */
-	hash_set64_t* const hash_set = hash_set_create64(0U, -1.0, SEED);
+	hash_set64_t* const hash_set = hash_set_create64(0U, -1.0, 42U);
 	if (!hash_set)
 	{
 		fputs("Allocation has failed!\n", stderr);

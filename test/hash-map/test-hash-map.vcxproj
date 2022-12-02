@@ -40,11 +40,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\shared\src\random_in.c" />
+    <ClCompile Include="..\shared\src\time_in.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\tests.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\include\random_in.h" />
+    <ClInclude Include="..\shared\include\time_in.h" />
     <ClInclude Include="src\tests.h" />
   </ItemGroup>
   <ItemGroup>

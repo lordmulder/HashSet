@@ -4,9 +4,10 @@
 /******************************************************************************/
 
 #include "tests.h"
+#include "../../shared/include/time_in.h"
+
 #include <stdio.h>
 #include <inttypes.h>
-#include <time.h>
 
 #define RUN_TEST_CASE(X) do \
 { \
@@ -17,7 +18,7 @@
 } \
 while(0)
 
-#define SEED ((uint32_t)time(NULL))
+#define SEED ((uint32_t)clock_now())
 
 /* ========================================================================= */
 /* MAIN                                                                      */

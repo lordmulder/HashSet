@@ -24,12 +24,18 @@
     <ClCompile Include="..\shared\src\random_in.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\src\time_in.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\include\random_in.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\include\time_in.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
