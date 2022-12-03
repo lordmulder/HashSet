@@ -23,7 +23,7 @@ endif
 endif
 endif
 
-ifeq ($(firstword $(filter %-mingw32 %-cygwin,$(DUMPMACHINE))),)
+ifeq ($(firstword $(filter %-mingw32 %-windows-gnu %-cygwin,$(DUMPMACHINE))),)
   DLL_LDFLAGS = -shared
   DLL_SUFFIX := .so
 else
