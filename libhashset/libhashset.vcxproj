@@ -46,7 +46,14 @@
     <ClInclude Include="src\generic_hash_set.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\dll_main.c" />
+    <ClCompile Include="src\dll_main.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static|ARM64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Static|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\hash_map_16.c" />
     <ClCompile Include="src\hash_map_32.c" />
     <ClCompile Include="src\hash_map_64.c" />
