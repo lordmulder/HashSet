@@ -126,7 +126,7 @@ Allocates a new hash set instance. The new hash set instance is empty initially.
 hash_set_t *hash_set_create(
 	const size_t initial_capacity,
 	const double load_factor,
-	const uint32_t seed
+	const uint64_t seed
 );
 ```
 
@@ -473,7 +473,7 @@ Allocates a new hash map instance. The new hash map instance is empty initially.
 hash_map_t *hash_map_create(
 	const size_t initial_capacity,
 	const double load_factor,
-	const uint32_t seed
+	const uint64_t seed
 );
 ```
 
