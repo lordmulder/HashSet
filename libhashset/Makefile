@@ -1,6 +1,6 @@
 include ../config.mk
 
-CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -Iinclude $(XCFLAGS)
+CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -Iinclude -fPIC $(XCFLAGS)
 
 SRC_PATH := src
 OBJ_PATH := obj
@@ -21,9 +21,9 @@ test: build
 build: $(ALL_PATH) $(LIB_FILE) $(DLL_FILE)
 
 $(LIB_FILE): $(OBJ_FILE)
-	$(AR) rcs $@ $^
+	$(AR) rcs $@ $(filter-out $(OBJ_PATH)/dll%,$^)
 
-$(DLL_FILE): $(SRC_FILE)
+$(DLL_FILE): $(OBJ_FILE)
 	$(CC) $(CFLAGS) $(DLL_LDFLAGS) -o $@ $^
 
 $(OBJ_FILE):

@@ -24,7 +24,7 @@ endif
 endif
 
 ifeq ($(firstword $(filter %-mingw32 %-cygwin,$(DUMPMACHINE))),)
-  DLL_LDFLAGS = -fPIC -shared
+  DLL_LDFLAGS = -shared
   DLL_SUFFIX := .so
 else
   DLL_LDFLAGS = -shared -Wl,--out-implib,$@.a

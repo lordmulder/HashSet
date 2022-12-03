@@ -46,6 +46,7 @@
     <ClInclude Include="src\generic_hash_set.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\dll_main.c" />
     <ClCompile Include="src\hash_map_16.c" />
     <ClCompile Include="src\hash_map_32.c" />
     <ClCompile Include="src\hash_map_64.c" />
