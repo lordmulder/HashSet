@@ -18,9 +18,16 @@
 /* Data types                                        */
 /* ------------------------------------------------- */
 
+typedef struct
+{
+	value_t key;
+	value_t value;
+}
+entry_t;
+
 typedef struct DECLARE(_hash_map_data)
 {
-	value_t *keys, *values;
+	entry_t *entries;
 	uint8_t *used, *deleted;
 	size_t capacity;
 }
@@ -42,33 +49,24 @@ static INLINE bool_t alloc_data(hash_data_t *const data, const size_t capacity)
 {
 	zero_memory(data, 1U, sizeof(hash_data_t));
 
-	data->keys = (value_t*) calloc(capacity, sizeof(value_t));
-	if (!data->keys)
+	data->entries = (entry_t*) calloc(capacity, sizeof(entry_t));
+	if (!data->entries)
 	{
-		return FALSE;
-	}
-
-	data->values = (value_t*) calloc(capacity, sizeof(value_t));
-	if (!data->values)
-	{
-		SAFE_FREE(data->keys);
 		return FALSE;
 	}
 
 	data->used = (uint8_t*) calloc(div_ceil(capacity, 8U), sizeof(uint8_t));
 	if (!data->used)
 	{
-		SAFE_FREE(data->keys);
-		SAFE_FREE(data->values);
+		SAFE_FREE(data->entries);
 		return FALSE;
 	}
 
 	data->deleted = (uint8_t*) calloc(div_ceil(capacity, 8U), sizeof(uint8_t));
 	if (!data->deleted)
 	{
-		SAFE_FREE(data->keys);
-		SAFE_FREE(data->values);
 		SAFE_FREE(data->used);
+		SAFE_FREE(data->entries);
 		return FALSE;
 	}
 
@@ -80,8 +78,7 @@ static INLINE void free_data(hash_data_t *const data)
 {
 	if (data)
 	{
-		SAFE_FREE(data->keys);
-		SAFE_FREE(data->values);
+		SAFE_FREE(data->entries);
 		SAFE_FREE(data->used);
 		SAFE_FREE(data->deleted);
 		data->capacity = 0U;
@@ -113,7 +110,7 @@ static INLINE bool_t find_slot(const hash_data_t *const data, const uint64_t bas
 		}
 		else
 		{
-			if (data->keys[index] == key)
+			if (data->entries[index].key == key)
 			{
 				SAFE_SET(index_out, index);
 				SAFE_SET(reused_out, FALSE);
@@ -131,10 +128,11 @@ static INLINE bool_t find_slot(const hash_data_t *const data, const uint64_t bas
 	return FALSE;
 }
 
-static INLINE void put_value(hash_data_t *const data, const size_t index, const value_t key, const value_t value, const bool_t reusing)
+static INLINE void put_entry(hash_data_t *const data, const size_t index, const value_t key, const value_t value, const bool_t reusing)
 {
-	data->keys[index] = key;
-	data->values[index] = value;
+	entry_t *const entry = &data->entries[index];
+	entry->key = key;
+	entry->value = value;
 
 	if (reusing)
 	{
@@ -179,13 +177,13 @@ static INLINE errno_t rebuild_map(hash_map_t *const instance, const size_t new_c
 	{
 		if (IS_VALID(instance->data, k))
 		{
-			const value_t key = instance->data.keys[k], value = instance->data.values[k];
-			if (find_slot(&temp, instance->basis, key, &index, NULL))
+			const entry_t entry = instance->data.entries[k];
+			if (find_slot(&temp, instance->basis, entry.key, &index, NULL))
 			{
 				free_data(&temp);
 				return EFAULT; /*this should never happen!*/
 			}
-			put_value(&temp, index, key, value, FALSE);
+			put_entry(&temp, index, entry.key, entry.value, FALSE);
 		}
 	}
 
@@ -237,14 +235,14 @@ errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, 
 	size_t index = SIZE_MAX;
 	bool_t slot_reused;
 
-	if ((!instance) || (!instance->data.keys))
+	if ((!instance) || (!instance->data.entries))
 	{
 		return EINVAL;
 	}
 
 	if (find_slot(&instance->data, instance->basis, key, &index, &slot_reused))
 	{
-		instance->data.values[index] = value;
+		instance->data.entries[index].value = value;
 		return EEXIST;
 	}
 
@@ -261,7 +259,7 @@ errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, 
 		}
 	}
 
-	put_value(&instance->data, index, key, value, slot_reused);
+	put_entry(&instance->data, index, key, value, slot_reused);
 
 	instance->valid = safe_incr(instance->valid);
 	if (slot_reused)
@@ -274,7 +272,7 @@ errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, 
 
 errno_t DECLARE(hash_map_contains)(const hash_map_t *const instance, const value_t key)
 {
-	if ((!instance) || (!instance->data.keys))
+	if ((!instance) || (!instance->data.entries))
 	{
 		return EINVAL;
 	}
@@ -286,7 +284,7 @@ errno_t DECLARE(hash_map_get)(const hash_map_t *const instance, const value_t ke
 {
 	size_t index;
 
-	if ((!instance) || (!instance->data.keys))
+	if ((!instance) || (!instance->data.entries))
 	{
 		return EINVAL;
 	}
@@ -296,7 +294,7 @@ errno_t DECLARE(hash_map_get)(const hash_map_t *const instance, const value_t ke
 		return ENOENT;
 	}
 
-	*value = instance->data.values[index];
+	*value = instance->data.entries[index].value;
 	return 0;
 }
 
@@ -304,7 +302,7 @@ errno_t DECLARE(hash_map_remove)(hash_map_t *const instance, const value_t key)
 {
 	size_t index;
 
-	if ((!instance) || (!instance->data.keys))
+	if ((!instance) || (!instance->data.entries))
 	{
 		return EINVAL;
 	}
@@ -338,7 +336,7 @@ errno_t DECLARE(hash_map_remove)(hash_map_t *const instance, const value_t key)
 
 errno_t DECLARE(hash_map_clear)(hash_map_t *const instance)
 {
-	if ((!instance) || (!instance->data.values))
+	if ((!instance) || (!instance->data.entries))
 	{
 		return EINVAL;
 	}
@@ -371,7 +369,7 @@ errno_t DECLARE(hash_map_iterate)(const hash_map_t *const instance, size_t *cons
 {
 	size_t index;
 
-	if ((!instance) || (!cursor) || (*cursor >= SIZE_MAX) || (!instance->data.values))
+	if ((!instance) || (!cursor) || (*cursor >= SIZE_MAX) || (!instance->data.entries))
 	{
 		return EINVAL;
 	}
@@ -380,8 +378,9 @@ errno_t DECLARE(hash_map_iterate)(const hash_map_t *const instance, size_t *cons
 	{
 		if (IS_VALID(instance->data, index))
 		{
-			SAFE_SET(key, instance->data.keys[index]);
-			SAFE_SET(value, instance->data.values[index]);
+			const entry_t* const entntry = &instance->data.entries[index];
+			SAFE_SET(key, entntry->key);
+			SAFE_SET(value, entntry->value);
 			*cursor = index + 1U;
 			return 0;
 		}
@@ -398,7 +397,7 @@ size_t DECLARE(hash_map_size)(const hash_map_t *const instance)
 
 errno_t DECLARE(hash_map_info)(const hash_map_t *const instance, size_t *const capacity, size_t *const valid, size_t *const deleted, size_t *const limit)
 {
-	if ((!instance) || (!instance->data.values))
+	if ((!instance) || (!instance->data.entries))
 	{
 		return EINVAL;
 	}
@@ -415,14 +414,15 @@ HASHSET_API errno_t DECLARE(hash_map_dump)(const hash_map_t *const instance, con
 {
 	size_t index;
 
-	if ((!instance) || (!instance->data.values) || (!callback))
+	if ((!instance) || (!instance->data.entries) || (!callback))
 	{
 		return EINVAL;
 	}
 
 	for (index = 0U; index < instance->data.capacity; ++index)
 	{
-		if (!callback(index, get_flag(instance->data.used, index) ? (get_flag(instance->data.deleted, index) ? 'd' : 'v') : 'u', instance->data.keys[index], instance->data.values[index]))
+		const entry_t* const entntry = &instance->data.entries[index];
+		if (!callback(index, get_flag(instance->data.used, index) ? (get_flag(instance->data.deleted, index) ? 'd' : 'v') : 'u', entntry->key, entntry->value))
 		{
 			return ECANCELED;
 		}

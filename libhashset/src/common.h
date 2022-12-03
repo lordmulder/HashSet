@@ -143,17 +143,17 @@ static INLINE void zero_memory(void *const addr, const size_t count, const size_
 /* Flags                                             */
 /* ------------------------------------------------- */
 
-static INLINE bool_t get_flag(const uint8_t *const flags, const size_t index)
+static FORCE_INLINE bool_t get_flag(const uint8_t *const flags, const size_t index)
 {
 	return (flags[index / 8U] >> (index % 8U)) & UINT8_C(1);
 }
 
-static INLINE void set_flag(uint8_t *const flags, const size_t index)
+static FORCE_INLINE void set_flag(uint8_t *const flags, const size_t index)
 {
 	flags[index / 8U] |= UINT8_C(1) << (index % 8U);
 }
 
-static INLINE void clear_flag(uint8_t *const flags, const size_t index)
+static FORCE_INLINE void clear_flag(uint8_t *const flags, const size_t index)
 {
 	flags[index / 8U] &= ~(UINT8_C(1) << (index % 8U));
 }
