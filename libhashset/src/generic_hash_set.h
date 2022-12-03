@@ -151,7 +151,7 @@ static INLINE size_t compute_limit(const size_t capacity, const double load_fact
 
 static INLINE errno_t rebuild_set(hash_set_t *const instance, const size_t new_capacity)
 {
-	size_t k, index;
+	size_t k, index = SIZE_MAX;
 	hash_data_t temp;
 
 	if (new_capacity < instance->valid)
@@ -223,7 +223,7 @@ void DECLARE(hash_set_destroy)(hash_set_t *instance)
 
 errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const value_t item)
 {
-	size_t index;
+	size_t index = SIZE_MAX;
 	bool_t slot_reused;
 
 	if ((!instance) || (!instance->data.items))

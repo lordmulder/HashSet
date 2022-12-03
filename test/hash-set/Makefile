@@ -1,6 +1,6 @@
 include ../../config.mk
 
-CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -I../../libhashset/include -I../shared/include $(XCFLAGS)
+CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wall -Wpedantic -I../../libhashset/include -I../shared/include $(XCFLAGS)
 LDFLAGS = -L../../libhashset/lib -lhashset-1 $(XLDFLAGS)
 
 SRC_PATH := src

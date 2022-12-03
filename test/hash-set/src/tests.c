@@ -101,7 +101,7 @@ int test_function_1(hash_set64_t *const hash_set)
 		for (i = 0; i < MAXIMUM; ++i)
 		{
 			const errno_t error = hash_set_contains64(hash_set, i);
-			if (error != ((i != 3167U) && (i != 9887U) && (i != 387083U)) ? 0 : ENOENT)
+			if (error != (((i != 3167U) && (i != 9887U) && (i != 387083U)) ? 0 : ENOENT))
 			{
 				printf("Contains operation has failed! (error: %d)\n", error);
 				return EXIT_FAILURE;

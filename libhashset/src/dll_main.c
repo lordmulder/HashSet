@@ -3,6 +3,10 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
 #if defined(_WIN32)
 
 #define WIN32_LEAN_AND_MEAN 1
@@ -20,10 +24,5 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 	}
 	return TRUE;
 }
-
-#elif defined(__GNUC__)
-
-void __attribute__((constructor)) libhashet_init(void) { /*noop*/ }
-void __attribute__((destructor))  libhashet_exit(void) { /*noop*/ }
 
 #endif

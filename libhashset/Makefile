@@ -1,6 +1,6 @@
 include ../config.mk
 
-CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wpedantic -Iinclude -fPIC $(XCFLAGS)
+CFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wall -Wpedantic -Iinclude -fPIC $(XCFLAGS)
 
 SRC_PATH := src
 OBJ_PATH := obj

@@ -162,7 +162,7 @@ static INLINE size_t compute_limit(const size_t capacity, const double load_fact
 
 static INLINE errno_t rebuild_map(hash_map_t *const instance, const size_t new_capacity)
 {
-	size_t k, index;
+	size_t k, index = SIZE_MAX;
 	hash_data_t temp;
 
 	if (new_capacity < instance->valid)
@@ -234,7 +234,7 @@ void DECLARE(hash_map_destroy)(hash_map_t *instance)
 
 errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, const value_t value)
 {
-	size_t index;
+	size_t index = SIZE_MAX;
 	bool_t slot_reused;
 
 	if ((!instance) || (!instance->data.keys))
