@@ -869,6 +869,26 @@ LibHashSet is ***thread-safe***, in the sense that all public functions operate 
 However, LibHashSet does **nothing** to synchronize access to a particular `hash_set_t` or `hash_map_t` instance! Consequently, in situations where the *same* instance needs to be shared across *multiple* concurrent threads, the calling application is responsible for serializing all access to the "shared" instance, e.g. by using a [*mutex*](https://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_lock.html) lock!
 
 
+Build Instructions
+==================
+
+This section describes how to build LibHashSet from the source codes.
+
+Windows
+-------
+
+On Microsoft Windows, project/solution files are provided to build LibHashSet with [Microsoft Visual Studio](https://visualstudio.microsoft.com/).
+
+LibHashSet also can be built using *GCC* or *Clang* via [MSYS2/Mingw-w64](https://www.msys2.org/) or [Cygwin](https://www.cygwin.com/). Be sure that *GCC* (or *Clang*) and *GNU make* are installed. Then run `make` from the project base directory, in the MSYS2 (or Cygwin) shell!
+
+Linux and &#42;BSD
+------------------
+
+On Linux or &#42;BSD, building LibHashSet with *GCC* or *Clang* is recommended. Also *GNU make* is required to build.
+
+Simply run `make` (or `gmake`, if on &#42;BSD) from the project base directory. That's it!
+
+
 License
 =======
 
