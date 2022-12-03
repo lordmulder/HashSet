@@ -3,8 +3,10 @@
 /* This work has been released under the CC0 1.0 Universal license!           */
 /******************************************************************************/
 
-#ifdef __GNUC__
+#if defined(__GNUC__)
 #  pragma GCC diagnostic ignored "-Wpedantic"
+#elif defined(_MSC_VER)
+#  pragma warning(disable: 4100)
 #endif
 
 #if defined(_WIN32)
@@ -25,4 +27,4 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 	return TRUE;
 }
 
-#endif
+#endif /*_WIN32*/
