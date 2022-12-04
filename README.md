@@ -868,6 +868,17 @@ LibHashSet is ***thread-safe***, in the sense that all public functions operate 
 
 However, LibHashSet does **nothing** to synchronize access to a particular `hash_set_t` or `hash_map_t` instance! Consequently, in situations where the *same* instance needs to be shared across *multiple* concurrent threads, the calling application is responsible for serializing all access to the "shared" instance, e.g. by using a [*mutex*](https://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_lock.html) lock!
 
+Source Codes
+============
+
+The "official" Git repository is mirrored at:
+
+* `git clone https://github.com/lordmulder/HashSet.git` ([Browse](https://github.com/lordmulder/HashSet))
+
+* `git clone https://punkindrublic.mooo.com:3000/Muldersoft/LibHashSet.git` ([Browse](https://punkindrublic.mooo.com:3000/Muldersoft/LibHashSet))
+
+* `git clone https://gitlab.com/lord_mulder/libhashset.git` ([Browse](https://gitlab.com/lord_mulder/libhashset))
+
 
 Build Instructions
 ==================
@@ -887,6 +898,18 @@ Linux and &#42;BSD
 On Linux or &#42;BSD, building LibHashSet with *GCC* or *Clang* is recommended. Also *GNU make* is required to build.
 
 Simply run `make` (or `gmake`, if on &#42;BSD) from the project base directory. That's it!
+
+### Influential environment variables
+
+The following environment variables can be used to control the build process:
+
+* `CC` &ndash; specifies the C compiler (default is `cc`)
+
+* `FLTO` &ndash; set to a non-zero value in order to enable *link-time optimizer* (`-flto`)
+
+* `DEBUG` &ndash; set to a non-zero value in order to enable "debug" build
+
+* `ASAN` &ndash; set to a non-zero value in order to enable the [address-sanitizer](https://en.wikipedia.org/wiki/AddressSanitizer)
 
 
 License

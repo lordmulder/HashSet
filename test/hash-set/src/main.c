@@ -18,8 +18,6 @@
 } \
 while(0)
 
-#define SEED ((uint32_t)clock_now())
-
 /* ========================================================================= */
 /* MAIN                                                                      */
 /* ========================================================================= */
@@ -27,11 +25,14 @@ while(0)
 int main(void)
 {
 	hash_set64_t *hash_set;
+	uint64_t clk_begin, clk_end;
 
 	printf("LibHashSet Hash-Set Test v%" PRIu16 ".%" PRIu16 ".%" PRIu16 " [%s]\n\n",
 		HASHSET_VERSION_MAJOR, HASHSET_VERSION_MINOR, HASHSET_VERSION_PATCH, HASHSET_BUILD_DATE);
 
-	hash_set = hash_set_create64(0U, -1.0, SEED);
+	clk_begin = clock_query();
+
+	hash_set = hash_set_create64(0U, -1.0, clock_query());
 	if (!hash_set)
 	{
 		puts("Allocation has failed!");
@@ -44,7 +45,9 @@ int main(void)
 	RUN_TEST_CASE(4);
 
 	hash_set_destroy64(hash_set);
-	puts("Tests completed successfully.");
+	clk_end = clock_query();
+
+	printf("Tests completed successfully [%.2f].", (clk_end - clk_begin) / ((double)clock_frequency()));
 	return EXIT_SUCCESS;
 
 failure:

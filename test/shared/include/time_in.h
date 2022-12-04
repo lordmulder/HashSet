@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-uint64_t clock_now(void);
+uint64_t clock_query(void);
+uint64_t clock_frequency(void);
 
 #endif /*_TEST_TIME_INCLUDED*/

@@ -12,7 +12,7 @@
 #  include <time.h>
 #endif
 
-uint64_t clock_now(void)
+uint64_t clock_query(void)
 {
 #ifdef _WIN32
     LARGE_INTEGER counter;
@@ -24,8 +24,22 @@ uint64_t clock_now(void)
     struct timespec spec;
     if (!clock_gettime(CLOCK_MONOTONIC, &spec))
     {
-        return (((uint64_t)spec.tv_sec) << 32) | (((uint64_t)spec.tv_nsec) & UINT64_C(0xFFFFFFFF));
+        return (((uint64_t)spec.tv_sec) * UINT64_C(1000000)) + (((uint64_t)spec.tv_nsec) / UINT64_C(10000));
     }
 #endif
-    return 0U;
+    abort();
+}
+
+uint64_t clock_frequency(void)
+{
+#ifdef _WIN32
+    LARGE_INTEGER frequency;
+    if (QueryPerformanceFrequency(&frequency))
+    {
+        return frequency.QuadPart;
+    }
+    abort();
+#else
+    return UINT64_C(1000000);
+#endif
 }
