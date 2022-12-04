@@ -514,15 +514,14 @@ void hash_map_destroy(
 
 Tries to insert the given key-value pair into the hash map.
 
-If the map already contains the given key, then the value associated with the existing key is updated.
-
 ***Note:*** If the key is actually inserted, then the hash map *may* need to grow.
 
 ```C
 errno_t hash_map_insert(
 	hash_map_t *const instance,
 	const value_t key,
-	const value_t value
+	const value_t value,
+	const int update
 );
 ```
 
@@ -537,6 +536,9 @@ errno_t hash_map_insert(
 * `value`  
   The value to be associated with the given key.
 
+* `update`  
+  If the map already contains the specified key, then if this parameter is *non-zero*, the value associated with the existing key will be updated; otherwise, the value currently associated with key remains unchanged.
+
 #### Return value
 
 On success, this function returns *zero*. On error, the appropriate error code is returned. Possible error codes include:
@@ -546,7 +548,7 @@ On success, this function returns *zero*. On error, the appropriate error code i
 
 * `EEXIST`  
   The given key was *not* inserted into the hash map (again), because it was already present.  
-  Nonetheless, the value associated with the existing key has been updated!
+  Nonetheless, if `update` was non-zero, the value associated with the existing key has been updated.
 
 * `ENOMEM`  
   The key could *not* be inserted, because the required amount of memory could *not* be allocated.
@@ -565,7 +567,8 @@ The value associated with the removed key is discarded.
 ```C
 errno_t hash_map_remove(
 	hash_map_t *const instance,
-	const value_t key
+	const value_t key,
+	value_t *const value
 );
 ```
 
@@ -576,6 +579,11 @@ errno_t hash_map_remove(
 
 * `key`  
   The key to be removed from the hash map.
+
+* `value`  
+  A pointer to a variable of type `value_t` where the value that was associated with the deleted key is stored.  
+  The content of the variable should be considered *undefined*, if the key could *not* be removed.  
+  ***Note:*** This parameter can be set to `NULL`, in which case the value will *not* be reported to the application.
 
 #### Return value
 

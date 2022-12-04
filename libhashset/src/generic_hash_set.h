@@ -238,14 +238,21 @@ errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const value_t item)
 
 	if ((!slot_reused) && (safe_add(instance->valid, instance->deleted) >= instance->limit))
 	{
-		const errno_t error = rebuild_set(instance, safe_times2(instance->data.capacity));
-		if (error)
+		if (instance->data.capacity < SIZE_MAX)
 		{
-			return error;
+			const errno_t error = rebuild_set(instance, safe_times2(instance->data.capacity));
+			if (error)
+			{
+				return error;
+			}
+			if (find_slot(&instance->data, instance->basis, item, &index, &slot_reused))
+			{
+				return EFAULT;
+			}
 		}
-		if (find_slot(&instance->data, instance->basis, item, &index, &slot_reused))
+		else
 		{
-			return EFAULT;
+			return ENOMEM; /*can not grow any futher!*/
 		}
 	}
 

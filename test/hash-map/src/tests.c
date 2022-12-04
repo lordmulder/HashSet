@@ -86,7 +86,7 @@ int test_function_1(hash_map64_t *const hash_map)
 		{
 			if (test_key1[j])
 			{
-				const errno_t error = hash_map_insert64(hash_map, j, test_data[j] = random_next(&random));
+				const errno_t error = hash_map_insert64(hash_map, j, test_data[j] = random_next(&random), 1);
 				if (error)
 				{
 					printf("Insert operation has failed! (error: %d)\n", error);
@@ -153,7 +153,7 @@ int test_function_1(hash_map64_t *const hash_map)
 		{
 			if (test_key1[j])
 			{
-				const errno_t error = hash_map_remove64(hash_map, j);
+				const errno_t error = hash_map_remove64(hash_map, j, NULL);
 				if (error)
 				{
 					printf("Remove operation has failed! (error: %d)\n", error);
@@ -238,7 +238,7 @@ int test_function_2(hash_map64_t *const hash_map)
 		{
 			if (test_key[j])
 			{
-				const errno_t error = hash_map_insert64(hash_map, j, test_val[j] = random_next(&random));
+				const errno_t error = hash_map_insert64(hash_map, j, test_val[j] = random_next(&random), 1);
 				if (error)
 				{
 					printf("Insert operation has failed! (error: %d)\n", error);
@@ -255,7 +255,7 @@ int test_function_2(hash_map64_t *const hash_map)
 		{
 			if (test_key[j])
 			{
-				const errno_t error = hash_map_insert64(hash_map, j, test_val[j] = random_next(&random));
+				const errno_t error = hash_map_insert64(hash_map, j, test_val[j] = random_next(&random), 1);
 				if (error != EEXIST)
 				{
 					printf("Insert operation has failed! (error: %d)\n", error);
@@ -325,7 +325,7 @@ int test_function_3(hash_map64_t *const hash_map)
 		for (;;)
 		{
 			const uint64_t rnd = random_next(&random) & UINT64_C(0x1FFFFFFFFFFFFFF);
-			const errno_t error = hash_map_insert64(hash_map, rnd, VALUE(rnd));
+			const errno_t error = hash_map_insert64(hash_map, rnd, VALUE(rnd), 1);
 			if (error)
 			{
 				if (error != EEXIST)
@@ -391,7 +391,7 @@ int test_function_4(hash_map64_t *const hash_map)
 
 	for (key = 0U; key < LIMIT; ++key)
 	{
-		const errno_t error = hash_map_insert64(hash_map, key, VALUE(key));
+		const errno_t error = hash_map_insert64(hash_map, key, VALUE(key), 1);
 		if (error)
 		{
 			PRINT_SET_INFO(4);
@@ -411,7 +411,7 @@ int test_function_4(hash_map64_t *const hash_map)
 
 	for (key = 0U; key < LIMIT; ++key)
 	{
-		const errno_t error = hash_map_remove64(hash_map, key);
+		const errno_t error = hash_map_remove64(hash_map, key, NULL);
 		if (error)
 		{
 			PRINT_SET_INFO(4);

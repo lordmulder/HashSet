@@ -72,13 +72,13 @@ HASHSET_API void hash_map_destroy16(hash_map16_t *const instance);
 HASHSET_API void hash_map_destroy32(hash_map32_t *const instance);
 HASHSET_API void hash_map_destroy64(hash_map64_t *const instance);
 
-HASHSET_API errno_t hash_map_insert16(hash_map16_t *const instance, const uint16_t key, const uint16_t value);
-HASHSET_API errno_t hash_map_insert32(hash_map32_t *const instance, const uint32_t key, const uint32_t value);
-HASHSET_API errno_t hash_map_insert64(hash_map64_t *const instance, const uint64_t key, const uint64_t value);
+HASHSET_API errno_t hash_map_insert16(hash_map16_t *const instance, const uint16_t key, const uint16_t value, const int update);
+HASHSET_API errno_t hash_map_insert32(hash_map32_t *const instance, const uint32_t key, const uint32_t value, const int update);
+HASHSET_API errno_t hash_map_insert64(hash_map64_t *const instance, const uint64_t key, const uint64_t value, const int update);
 
-HASHSET_API errno_t hash_map_remove16(hash_map16_t *const instance, const uint16_t key);
-HASHSET_API errno_t hash_map_remove32(hash_map32_t *const instance, const uint32_t key);
-HASHSET_API errno_t hash_map_remove64(hash_map64_t *const instance, const uint64_t key);
+HASHSET_API errno_t hash_map_remove16(hash_map16_t *const instance, const uint16_t key, uint16_t *const value);
+HASHSET_API errno_t hash_map_remove32(hash_map32_t *const instance, const uint32_t key, uint32_t *const value);
+HASHSET_API errno_t hash_map_remove64(hash_map64_t *const instance, const uint64_t key, uint64_t *const value);
 
 HASHSET_API errno_t hash_map_clear16(hash_map16_t *const instance);
 HASHSET_API errno_t hash_map_clear32(hash_map32_t *const instance);

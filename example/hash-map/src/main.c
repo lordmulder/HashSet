@@ -35,7 +35,7 @@ int main(void)
 	while (have_more_items(offset))
 	{
 		const pair_t input = get_next_item(offset++);
-		const errno_t error = hash_map_insert64(hash_map, input.key, input.value);
+		const errno_t error = hash_map_insert64(hash_map, input.key, input.value, 1);
 		if (error)
 		{
 			fprintf(stderr, "Insert operation failed! (error: %d)\n", error);

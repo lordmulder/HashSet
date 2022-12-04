@@ -230,7 +230,7 @@ void DECLARE(hash_map_destroy)(hash_map_t *instance)
 	}
 }
 
-errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, const value_t value)
+errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, const value_t value, const bool_t update)
 {
 	size_t index = SIZE_MAX;
 	bool_t slot_reused;
@@ -242,20 +242,30 @@ errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, 
 
 	if (find_slot(&instance->data, instance->basis, key, &index, &slot_reused))
 	{
-		instance->data.entries[index].value = value;
+		if (update)
+		{
+			instance->data.entries[index].value = value;
+		}
 		return EEXIST;
 	}
 
 	if ((!slot_reused) && (safe_add(instance->valid, instance->deleted) >= instance->limit))
 	{
-		const errno_t error = rebuild_map(instance, safe_times2(instance->data.capacity));
-		if (error)
+		if (instance->data.capacity < SIZE_MAX)
 		{
-			return error;
+			const errno_t error = rebuild_map(instance, safe_times2(instance->data.capacity));
+			if (error)
+			{
+				return error;
+			}
+			if (find_slot(&instance->data, instance->basis, key, &index, &slot_reused))
+			{
+				return EFAULT;
+			}
 		}
-		if (find_slot(&instance->data, instance->basis, key, &index, &slot_reused))
+		else
 		{
-			return EFAULT;
+			return ENOMEM; /*can not grow any futher!*/
 		}
 	}
 
@@ -298,7 +308,7 @@ errno_t DECLARE(hash_map_get)(const hash_map_t *const instance, const value_t ke
 	return 0;
 }
 
-errno_t DECLARE(hash_map_remove)(hash_map_t *const instance, const value_t key)
+errno_t DECLARE(hash_map_remove)(hash_map_t *const instance, const value_t key, value_t *const value)
 {
 	size_t index;
 
@@ -312,6 +322,7 @@ errno_t DECLARE(hash_map_remove)(hash_map_t *const instance, const value_t key)
 		return ENOENT;
 	}
 
+	SAFE_SET(value, instance->data.entries[index].value);
 	set_flag(instance->data.deleted, index);
 	instance->deleted = safe_incr(instance->deleted);
 	instance->valid = safe_decr(instance->valid);
