@@ -252,7 +252,7 @@ errno_t DECLARE(hash_set_insert)(hash_set_t *const instance, const value_t item)
 		}
 		else
 		{
-			return ENOMEM; /*can not grow any futher!*/
+			return EFBIG; /*can not grow any futher!*/
 		}
 	}
 

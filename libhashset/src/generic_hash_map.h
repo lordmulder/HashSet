@@ -265,7 +265,7 @@ errno_t DECLARE(hash_map_insert)(hash_map_t *const instance, const value_t key, 
 		}
 		else
 		{
-			return ENOMEM; /*can not grow any futher!*/
+			return EFBIG; /*can not grow any futher!*/
 		}
 	}
 

@@ -195,7 +195,10 @@ On success, this function returns *zero*. On error, the appropriate error code i
   The given item was *not* inserted into the hash set (again), because it was already present.
 
 * `ENOMEM`  
-  The item could *not* be inserted, because the required amount of memory could *not* be allocated.
+  The set failed to grow, because the required amount of memory could *not* be allocated (out of memory).
+
+* `EFBIG`  
+  The set needs to grow, but doing so would exceed the maximum size supported by the underlying system.
 
 * `EFAULT`  
   Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
@@ -551,7 +554,10 @@ On success, this function returns *zero*. On error, the appropriate error code i
   Nonetheless, if `update` was non-zero, the value associated with the existing key has been updated.
 
 * `ENOMEM`  
-  The key could *not* be inserted, because the required amount of memory could *not* be allocated.
+  The map failed to grow, because the required amount of memory could *not* be allocated (out of memory).
+
+* `EFBIG`  
+  The map needs to grow, but doing so would exceed the maximum size supported by the underlying system.
 
 * `EFAULT`  
   Something else went wrong. This usually indicates an internal error and is *not* supposed to happen.
