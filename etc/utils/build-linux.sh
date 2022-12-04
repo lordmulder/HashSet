@@ -18,8 +18,7 @@ case "${mode}" in
 			compiler="${target}-linux-gnu-gcc"
 			target="$("${compiler}" -dumpmachine)"
 			echo -e "--------------------------------\n${target}\n--------------------------------"
-			make CC="${compiler}" clean
-			make CC="${compiler}"
+			make CC="${compiler}" STRIP=1
 			mkdir -pv "out/lib/${target}" "out/bin/${target}"
 			cp -rv "libhashset/lib/"* "out/lib/${target}"
 			for i in example test; do
@@ -34,8 +33,7 @@ case "${mode}" in
 			compiler="/usr/local/musl/${target}/bin/musl-gcc"
 			target="$("${compiler}" -dumpmachine | sed 's/-gnu/-musl/i')"
 			echo -e "--------------------------------\n${target}\n--------------------------------"
-			make CC="${compiler}" clean
-			make CC="${compiler}"
+			make CC="${compiler}" STATIC=1 STRIP=1
 			mkdir -pv "out/lib/${target}" "out/bin/${target}"
 			cp -rv "libhashset/lib/"* "out/lib/${target}"
 			for i in example test; do

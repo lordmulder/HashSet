@@ -919,6 +919,10 @@ The following environment variables can be used to control the build process:
 
 * `CC` &ndash; specifies the C compiler (default is `cc`)
 
+* `STRIP` &ndash; set to a non-zero value in order to *strip* the generated binaries
+
+* `STATIC` &ndash; set to a non-zero value in order to enable *static* linking
+
 * `FLTO` &ndash; set to a non-zero value in order to enable *link-time optimizer* (`-flto`)
 
 * `DEBUG` &ndash; set to a non-zero value in order to enable "debug" build

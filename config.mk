@@ -11,16 +11,13 @@ ifneq ($(ASAN),)
   XLDFLAGS += -static-libasan
 else
   XCFLAGS = -Ofast -DNDEBUG
+endif
+endif
+
 ifneq ($(firstword $(filter x86_64-%,$(DUMPMACHINE))),)
   XCFLAGS += -march=x86-64 -mtune=nocona
 else ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
   XCFLAGS += -march=pentiumpro -mtune=intel
-endif
-ifneq ($(FLTO),)
-  XCFLAGS += -flto
-endif
-  XLDFLAGS += -s -static
-endif
 endif
 
 ifeq ($(firstword $(filter %-mingw32 %-windows-gnu %-cygwin,$(DUMPMACHINE))),)
@@ -33,4 +30,17 @@ else
 ifneq ($(firstword $(filter i686-%,$(DUMPMACHINE))),)
   XLDFLAGS += -Wl,--large-address-aware
 endif
+endif
+
+ifneq ($(STATIC),)
+  XLDFLAGS += -static
+endif
+
+ifneq ($(FLTO),)
+  XCFLAGS += -flto
+endif
+
+ifneq ($(STRIP),)
+  XLDFLAGS += -Wl,--strip-all
+  DLL_LDFLAGS += -Wl,--strip-all
 endif

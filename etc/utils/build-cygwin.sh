@@ -7,8 +7,7 @@ cp -rfv "libhashset/include/"*.h "out/_next/include"
 
 target="$(gcc -dumpmachine)"
 echo -e "--------------------------------\n${target}\n--------------------------------"
-make CC="gcc" clean
-make CC="gcc"
+make CC="gcc" STATIC=1 STRIP=1
 rm -rf "out/_next/lib/${target}" "out/_next/bin/${target}"
 mkdir -pv "out/_next/lib/${target}" "out/_next/bin/${target}"
 cp -rv "libhashset/lib/"* "out/_next/lib/${target}"

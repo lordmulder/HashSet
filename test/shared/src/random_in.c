@@ -8,6 +8,9 @@
 
 #ifndef _WIN32
 #  include <unistd.h>
+#  if defined(__APPLE__) && defined(__MACH__)
+#    include <sys/random.h>
+#  endif
 #endif
 
 #define ARRAY_SIZE(X) (sizeof(X) / sizeof((X)[0U]))
