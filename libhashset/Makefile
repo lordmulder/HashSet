@@ -14,9 +14,7 @@ DLL_FILE := $(LIB_PATH)/libhashset-1$(DLL_SUFFIX)
 
 .PHONY: all build clean test
 
-all: clean build
-
-test: build
+all test: clean build
 
 build: $(ALL_PATH) $(LIB_FILE) $(DLL_FILE)
 

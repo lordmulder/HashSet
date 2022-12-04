@@ -1,8 +1,10 @@
 SUBDIRS := libhashset example test
 
-.PHONY: all clean test $(SUBDIRS)
+.PHONY: all clean $(SUBDIRS)
 
-all clean test: $(SUBDIRS)
+all clean: $(SUBDIRS)
+
+example test: libhashset
 
 $(SUBDIRS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
