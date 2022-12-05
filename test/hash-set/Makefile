@@ -21,7 +21,7 @@ $(ALL_PATH):
 	mkdir -p $@
 
 test: all
-	./$(BIN_FILE)
+	env $(ENV_LDPATH)="$(realpath .):$(realpath ../../libhashset/lib)$(if $($(ENV_LDPATH)),:$($(ENV_LDPATH)))" ./$(BIN_FILE)
 
 clean:
 	rm -vf $(BIN_FILE)

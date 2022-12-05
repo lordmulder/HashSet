@@ -44,3 +44,9 @@ ifneq ($(STRIP),)
   XLDFLAGS += -Wl,--strip-all
   DLL_LDFLAGS += -Wl,--strip-all
 endif
+
+ifneq ($(firstword $(filter MINGW32_NT-% MINGW64_NT-% CYGWIN_NT-%,$(shell uname))),)
+  ENV_LDPATH := PATH
+else
+  ENV_LDPATH := LD_LIBRARY_PATH
+endif
