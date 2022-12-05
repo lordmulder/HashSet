@@ -47,11 +47,11 @@ int main(void)
 	hash_set_destroy64(hash_set);
 	clk_end = clock_query();
 
-	printf("Tests completed successfully [%.2f].", (clk_end - clk_begin) / ((double)clock_frequency()));
+	printf("Tests completed successfully [%.2f].\n\n", (clk_end - clk_begin) / ((double)clock_frequency()));
 	return EXIT_SUCCESS;
 
 failure:
 	hash_set_destroy64(hash_set);
-	puts("\nSomething went wrong !!!");
+	puts("\nSomething went wrong !!!\n");
 	return EXIT_FAILURE;
 }

@@ -52,6 +52,7 @@ int main(void)
 	{
 		printf("Entry: 0x%016" PRIX64 " -> 0x%016" PRIX64 "\n", key, value);
 	}
+	puts("");
 
 	/* destroy the hash map, when it is no longer needed! */
 	hash_map_destroy64(hash_map);

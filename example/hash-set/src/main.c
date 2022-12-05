@@ -51,6 +51,7 @@ int main(void)
 	{
 		printf("Item: 0x%016" PRIX64 "\n", item);
 	}
+	puts("");
 
 	/* destroy the hash set, when it is no longer needed! */
 	hash_set_destroy64(hash_set);
