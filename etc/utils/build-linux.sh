@@ -14,8 +14,8 @@ cp -rfv "libhashset/include/"*.h "out/include"
 
 case "${mode}" in
 	gnu)
-		for target in i686 x86_64 aarch64; do
-			compiler="${target}-linux-gnu-gcc"
+		for cpu in i686 x86_64 aarch64; do
+			compiler="${cpu}-linux-gnu-gcc"
 			target="$("${compiler}" -dumpmachine)"
 			echo -e "--------------------------------\n${target}\n--------------------------------"
 			make CC="${compiler}" STRIP=1
@@ -29,8 +29,8 @@ case "${mode}" in
 		done
 		;;
 	musl)
-		for target in i686 x86_64 arm64; do
-			compiler="/usr/local/musl/${target}/bin/musl-gcc"
+		for cpu in i686 x86_64 arm64; do
+			compiler="/usr/local/musl/${cpu}/bin/musl-gcc"
 			target="$("${compiler}" -dumpmachine | sed 's/-gnu/-musl/i')"
 			echo -e "--------------------------------\n${target}\n--------------------------------"
 			make CC="${compiler}" STATIC=1 STRIP=1
